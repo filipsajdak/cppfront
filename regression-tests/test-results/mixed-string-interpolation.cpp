@@ -6,6 +6,9 @@
 #include <string_view>
 #include <utility>
 #include <tuple>
+#include <vector>
+#include <map>
+#include <unordered_set>
 
 struct custom_struct_with_no_stringize_customization { } custom;
 
@@ -13,7 +16,7 @@ struct custom_struct_with_no_stringize_customization { } custom;
 
 //=== Cpp2 definitions ==========================================================
 
-#line 7 "mixed-string-interpolation.cpp2"
+#line 10 "mixed-string-interpolation.cpp2"
 
 [[nodiscard]] auto main() -> int{
     auto a { 2 }; 
@@ -60,5 +63,19 @@ struct custom_struct_with_no_stringize_customization { } custom;
     std::cout << "vv = " + cpp2::to_string(vv) + "\n";
 
     std::cout << "custom = " + cpp2::to_string(custom) + "\n";
+    std::vector<int> v { 1, 2, 3, 4, 5 }; 
+    std::cout << "v = " + cpp2::to_string(v) + "\n";
+
+    std::map<std::string,int> m { std::pair("A", 1), std::pair("B", 2), std::pair("C", 3) }; 
+    std::cout << "m = " + cpp2::to_string(m) + "\n";
+
+    std::unordered_set<int> us { 1, 2, 3, 2, 3, 4, 5, 2, 3, 1, 2, 3, 4, 5 }; 
+    std::cout << "us = " + cpp2::to_string(us) + "\n";
+
+    std::unordered_multiset<int> ums { 1, 2, 3, 2, 3, 4, 5, 2, 3, 1, 2, 3, 4, 5 }; 
+    std::cout << "ums = " + cpp2::to_string(ums) + "\n";
+
+    std::vector mix { std::optional(std::make_tuple(v, m, us)) }; 
+    std::cout << "mix = " + cpp2::to_string(mix) + "\n";
 }
 
