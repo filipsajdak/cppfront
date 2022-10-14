@@ -605,6 +605,7 @@ struct alternative_node
     std::unique_ptr<id_expression_node>  id_expression;
     source_position                      equal_sign;
     std::unique_ptr<statement_node>      statement;
+    token const*                         literal;
 
     auto position() const -> source_position
     {
@@ -717,8 +718,11 @@ auto alternative_node::visit(auto& v, int depth) -> void
     }
     assert (is_as_keyword);
     v.start(*is_as_keyword, depth+1);
-    assert (id_expression);
-    id_expression->visit(v, depth+1);
+    assert (id_expression || literal);
+    if (id_expression)
+        id_expression->visit(v, depth+1);
+    else if (literal)
+        literal->visit(v, depth+1);
     assert (statement);
     statement->visit(v, depth+1);
     v.end(*this, depth);
@@ -2232,6 +2236,10 @@ private:
 
         if (auto id = id_expression()) {
             n->id_expression = std::move(id);
+        }
+        else if (is_literal(curr().type())) {
+            n->literal = &curr();
+            next();
         }
         else {
             error("expected id-expression after 'is' in inspect alternative");
