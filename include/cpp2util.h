@@ -199,6 +199,7 @@
     #include <cstddef>
     #include <utility>
     #include <cstdio>
+    #include "external/ctre.hpp"
 
     #if defined(CPP2_USE_SOURCE_LOCATION)
         #include <source_location>
@@ -552,6 +553,15 @@ template< auto value, typename X >
 auto is( X const& x ) -> bool {
     if constexpr (std::is_convertible_v<decltype(value),X>) {
         return x == value;
+    } else {
+        return false;
+    }
+}
+
+template <ctll::fixed_string pattern, typename X >
+auto is( X const& x ) -> bool {
+    if constexpr ( std::is_convertible_v<X, std::string_view> ) {
+        return ctre::match<pattern>(x);
     } else {
         return false;
     }
