@@ -549,22 +549,29 @@ auto is( X const& x ) -> bool {
     return x == X();
 }
 
+// Literals, expressions ... tbc
+
 template< auto value, typename X >
 auto is( X const& x ) -> bool {
-    if constexpr (std::is_convertible_v<decltype(value),X>) {
-        return x == value;
-    } else {
-        return false;
-    }
+    return false;
+}
+
+template< auto value, typename X >
+    requires std::is_convertible_v<CPP2_TYPEOF(value),X>
+auto is( X const& x ) -> bool {
+    return x == value;
+}
+
+template< auto predicate, typename X >
+    requires std::predicate<decltype(predicate), X>
+auto is( X const& x ) -> bool {
+    return predicate(x);
 }
 
 template <ctll::fixed_string pattern, typename X >
+    requires std::is_convertible_v<X, std::string_view>
 auto is( X const& x ) -> bool {
-    if constexpr ( std::is_convertible_v<X, std::string_view> ) {
-        return ctre::match<pattern>(x);
-    } else {
-        return false;
-    }
+    return ctre::match<pattern>(x); 
 }
 
 //-------------------------------------------------------------------------------------------------------------
