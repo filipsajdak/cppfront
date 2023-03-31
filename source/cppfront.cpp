@@ -1520,7 +1520,10 @@ public:
                     !decl->parameter
                     || (
                         decl->parameter
-                        && decl->parameter->pass == passing_style::out
+                        && (
+                                decl->parameter->pass == passing_style::out
+                                || decl->parameter->pass == passing_style::inout
+                           )
                         )
                     )
                 )
@@ -3293,6 +3296,7 @@ public:
                 }
                 else if (x.pass == passing_style::inout) {
                     is_out = true;
+                    printer.print_cpp2("&", n.position());
                     offset = -6;   // because we're replacing "inout " (followed by at least one space) with nothing
                 }
             }
@@ -3598,6 +3602,7 @@ public:
             switch (n.pass) {
             break;case passing_style::in     : printer.print_cpp2( "cpp2::in<",  n.position() );
             break;case passing_style::out    : printer.print_cpp2( "cpp2::out<", n.position() );
+            break;case passing_style::inout  : printer.print_cpp2( "cpp2::inout<", n.position() );
             break;default: ;
             }
         }
@@ -3661,7 +3666,7 @@ public:
             switch (n.pass) {
             break;case passing_style::in     : printer.print_cpp2( ">",  n.position() );
             break;case passing_style::copy   : printer.print_cpp2( "",   n.position() );
-            break;case passing_style::inout  : printer.print_cpp2( "&",  n.position() );
+            break;case passing_style::inout  : printer.print_cpp2( ">",  n.position() );
             break;case passing_style::out    : printer.print_cpp2( ">",  n.position() );
             break;case passing_style::move   : printer.print_cpp2( "&&", n.position() );
             break;case passing_style::forward: printer.print_cpp2( "&&", n.position() );

@@ -615,6 +615,19 @@ public:
     }
 };
 
+template<typename T>
+class inout {
+    T* t;
+
+public:
+    inout(T* t_) noexcept : t{t_} { Default.expects(t); }
+    inout(inout const&) = delete;
+    inout& operator=(inout const&) = delete;
+
+    auto value() noexcept -> T& {
+        return *t;
+    }
+};
 
 //-----------------------------------------------------------------------
 //
