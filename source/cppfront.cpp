@@ -4501,11 +4501,13 @@ public:
                     }
                     //  Else just use infix assignment
                     else {
+                        auto found_expression_list = initializer.find(',') != initializer.npos;
+
                         current_functions.back().prolog.statements.push_back(
-                            object_name +
-                            " = " +
+                            (*object)->name()->to_string(true) +
+                            " = " + (found_expression_list ? "{" : "") +
                             initializer +
-                            ";"
+                            (found_expression_list ? "}" : "") + ";"
                         );
                     }
                 }
@@ -4594,11 +4596,16 @@ public:
                     //  Need to actually emit the initializer in an assignment operator
                     if (is_assignment)
                     {
+                        auto initializer = print_to_string( *(*object)->initializer, false );
+                        if (initializer.empty()) {
+                            initializer = "{}";
+                        }
+                        auto found_expression_list = initializer.find(',') != initializer.npos;
                         current_functions.back().prolog.statements.push_back(
-                            object_name +
-                            " = " +
+                            (*object)->name()->to_string(true) +
+                            " = " + (found_expression_list ? "{" : "") +
                             initializer +
-                            ";"
+                            (found_expression_list ? "}" : "")+ ";"
                         );
                     }
                 }
