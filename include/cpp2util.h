@@ -1749,8 +1749,8 @@ constexpr auto is( U&& x ) {
 //  forward declarations needed for recursive calls
 //
 
-template<typename... Ts, typename C>
-auto is( std::variant<Ts...> const& x, C && value );
+template<specialization_of_template<std::variant> T, typename C>
+constexpr auto is( T&& x, C&& value );
 
 //-------------------------------------------------------------------------------------------------------------
 //  pointer_like variable is value
