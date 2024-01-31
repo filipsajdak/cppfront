@@ -166,10 +166,10 @@ main: () = {
         print("v{std::vector{1,2,3,4}} is std::variant",     v is std::variant,     true );
     }
 
-    // is variant value
+    // is variant empty
     {
         v : std::variant<int, ThrowingConstruction, std::monostate> = ();
-        print("v{int} is empty", v is cpp2::empty, false);
+        print("v{int} is empty", v is cpp2::empty, false, "v contains default value of first type");
 
         v = std::monostate();
         print("v{monostate} is empty", v is cpp2::empty, true);
