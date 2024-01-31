@@ -1500,7 +1500,7 @@ constexpr auto is( X const& ) -> std::true_type { return {}; }
 
 template< polymorphic_pointer C, polymorphic_pointer X >
 constexpr auto is( X const& x ) -> bool {
-    return Dynamic_cast<C>(x) != nullptr;
+    return Dynamic_cast<const std::remove_pointer_t<C>*>(x) != nullptr;
 }
 
 template< std::same_as<empty> C, pointer_like X >
