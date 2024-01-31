@@ -18,6 +18,20 @@ struct ThrowingConstruction {
 main: () = {
 
     print_header();
+    
+    // type is type
+    {
+        print("<A> is A", cpp2::is<A,A>(), true);
+        print("<A> is B", cpp2::is<A,B>(), false);
+        print("<A> is C", cpp2::is<A,C>(), false);
+        print("<B> is A", cpp2::is<B,A>(), false);
+        print("<B> is B", cpp2::is<B,B>(), true);
+        print("<B> is C", cpp2::is<B,C>(), false);
+        print("<C> is A", cpp2::is<C,A>(), true);
+        print("<C> is B", cpp2::is<C,B>(), false);
+        print("<C> is C", cpp2::is<C,C>(), true);
+    }
+
     // is template
     {
         v : std::vector = (1, 2, 3);
