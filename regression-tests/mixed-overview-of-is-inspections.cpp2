@@ -95,7 +95,7 @@ main: () = {
         print("3.14f is (close_to(3.14 ))",  3.14f is (close_to(3.14 )), true);
         print("3.14  is (close_to(3.14f))",  3.14  is (close_to(3.14f)), true);
     }
-/*
+
     // type_trait
     {
         i  : int       = 42;
@@ -106,7 +106,7 @@ main: () = {
         print("ci{const int} is std::is_integral",       ci is std::is_integral, true);
         print("ci{const int} is std::is_floating_point", ci is std::is_floating_point, false);
     }
-*/
+
     // predicate
     {
         d := 3.14;
