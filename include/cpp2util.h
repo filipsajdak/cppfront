@@ -1393,7 +1393,7 @@ constexpr auto is() -> std::true_type { return {}; }
 //  Type is Type Traits
 //
 
-template <typename  X, template <typename> class C>
+template <typename  X, template <typename, typename...> class C>
     requires type_trait<C>
 auto is() -> C<X> { return {}; }
 
