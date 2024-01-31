@@ -1665,85 +1665,6 @@ auto as( X&& x ) -> decltype(auto) {
 
 
 //-------------------------------------------------------------------------------------------------------------
-//  std::variant is and as
-//
-
-//  is Template
-//
-
-template <template <typename...> class C, typename... Ts>
-constexpr auto is( std::variant<Ts...> const& x ) -> bool {
-    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if (x.index() ==  It::index) { return is<C>(std::get<It::index>(x)); }
-        return false;
-    }) != std::variant_npos;
-}
-
-template <template <typename...> class C, typename... Ts>
-    requires std::same_as<C<Ts...>, std::variant<Ts...>>
-constexpr auto is( std::variant<Ts...> const& ) -> std::true_type {
-    return {};
-}
-
-//  is Value
-//
-
-template<typename... Ts, typename C>
-auto is( std::variant<Ts...> const& x, C const& value ) {
-    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if (x.index() ==  It::index) { return is(std::get<It::index>(x), value); }
-        return false;
-    }) != std::variant_npos;
-}
-
-//  is Type
-//
-
-template<typename T, typename... Ts>
-auto is( std::variant<Ts...> const& x ) {
-    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if constexpr (std::is_same_v< typename It::type, T >) { return x.index() == It::index; } else { return false; }
-    }) != std::variant_npos;
-}
-
-template<template <typename...> class C, specialization_of_template<std::variant> T>
-auto is( T&& x ) {
-    return type_find_if(x, [&]<typename It>(It const&) -> bool {
-        if constexpr (specialization_of_template<typename It::type, C>) { return x.index() == It::index; } else { return false; }
-    }) != std::variant_npos || specialization_of_template<T, C>;
-}
-
-template<std::same_as<empty> T, typename... Ts>
-auto is( std::variant<Ts...> const& x ) {
-    if (x.valueless_by_exception()) 
-        return true;
-    if constexpr (is_any<std::monostate, Ts...>) 
-        return std::get_if<std::monostate>(&x) != nullptr;
-    return false;
-}
-
-
-template<not_same_as<std::string> T, specialization_of_template<std::variant> X>
-auto as( X && x ) -> decltype(auto) {
-    constness_like_t<T, X>* ptr = nullptr;
-    type_find_if(std::forward<X>(x), [&]<typename It>(It const&) -> bool {
-        if constexpr (std::is_same_v< typename It::type, T >) { if (std::forward<X>(x).index() ==  It::index) { ptr = &std::get<It::index>(x); return true; } }; return false;
-    });
-    if (!ptr) { Throw( std::bad_variant_access(), "'as' cast failed for 'variant'"); } 
-    return forward_like<X>(*ptr);
-}
-
-
-template< typename C, pointer_like X >
-    requires can_bound_to<pointee_t<X>, C>
-auto as( X&& x ) -> decltype(auto) {
-    if (x) {
-        return forward_like<X>(*x);
-    }
-    Throw( std::bad_cast(), "'as' cast failed for 'pointer_like'");
-}
-
-//-------------------------------------------------------------------------------------------------------------
 //  std::any is and as
 //
 
@@ -1785,26 +1706,6 @@ constexpr bool is( X const& x, V const& value ) {
     }
 }
 
-
-// inline constexpr auto is( std::any const& x, auto const& value ) -> bool
-// {
-//     //  Predicate case
-//     if constexpr (requires{ {value(x)} -> boolean_testable; }) {
-//         return value(x);
-//     }
-//     else if constexpr (std::is_function_v<decltype(value)> || requires{ &value.operator(); }) {
-//         return false;
-//     }
-
-//     //  Value case
-//     else if constexpr (requires{ bool{ *std::any_cast<CPP2_TYPEOF(value)>(&x) == value }; }) {
-//         auto pvalue = std::any_cast<CPP2_TYPEOF(value)>(&x);
-//         return pvalue && *pvalue == value;
-//     }
-//     //  else
-//     return false;
-// }
-
 //  as
 //
 template<typename T, same_type_as<std::any> X>
@@ -1828,66 +1729,101 @@ template<std::same_as<empty> T, typename U>
 constexpr auto is( std::optional<U> const& x ) -> bool
     { return !x.has_value(); }
 
+//-------------------------------------------------------------------------------------------------------------
+//  forward declarations needed for recursive calls
+//
+
+template<typename... Ts, typename C>
+auto is( std::variant<Ts...> const& x, C const& value );
+
+//-------------------------------------------------------------------------------------------------------------
+//  pointer_like is
+//
+
+template <pointer_like X, typename V>
+constexpr auto is( X const& x, V const& value) -> decltype(auto) {
+    if constexpr (pointer<X> && pointer<V>) {
+        return x == value;
+    } else {
+        return !is<empty>(x) && is(*x, value);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------
+//  std::variant is and as
+//
+
+//  is Template
+//
+
+template <template <typename...> class C, typename... Ts>
+constexpr auto is( std::variant<Ts...> const& x ) -> bool {
+    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
+        if (x.index() ==  It::index) { return is<C>(std::get<It::index>(x)); }
+        return false;
+    }) != std::variant_npos;
+}
+
+template <template <typename...> class C, typename... Ts>
+    requires std::same_as<C<Ts...>, std::variant<Ts...>>
+constexpr auto is( std::variant<Ts...> const& ) -> std::true_type {
+    return {};
+}
 
 //  is Value
 //
-template <pointer X, pointer V>
-constexpr auto is( X const& x, V const& value) -> decltype(auto) {
-    return x == value;
+
+template<typename... Ts, typename C>
+auto is( std::variant<Ts...> const& x, C const& value ) {
+    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
+        if (x.index() ==  It::index) { return is(std::get<It::index>(x), value); }
+        return false;
+    }) != std::variant_npos;
 }
 
-template <pointer_like X, not_same_as<X> V>
-constexpr auto is( X const&, V const& ) -> std::false_type {
-    return {};
-}
-
-template <pointer_like X, pointer_like V>
-    requires std::equality_comparable_with<pointee_t<V>, pointee_t<X>>
-constexpr auto is( X const& x, V const& value) -> decltype(auto) {
-    return !is<empty>(x) && !is<empty>(value) && (*x == *value);
-}
-
-template <pointer_like X, has_custom_operator_is<pointee_t<X>> V>
-    requires not_same_as<V, X>
-constexpr bool is( X const& x, V const& value ) {
-    return !is<empty>(x) && value.op_is(*x);
-}
-
-template <pointer_like X, std::predicate<pointee_t<X>> V>
-    requires not_same_as<V, X>
-constexpr bool is( X const& x, V const& value ) {
-    return !is<empty>(x) && value(*x);
-}
-
-template <pointer_like X, std::predicate<pointee_t<X>> V>
-    requires has_defined_argument<V> // but not explicit castable
-            && not_same_as<V, X>
-constexpr auto is( X const&, V const& ) -> std::false_type {
-    return {};
-}
-
-template <pointer_like X, std::predicate<pointee_t<X>> V>
-    requires has_defined_argument<V> && covertible_to_argument_of<pointee_t<X>, V>
-            && not_same_as<V, X>
-constexpr bool is( X const& x, V const& value ) {
-    return !is<empty>(x) && value(*x); 
-}
-
-template <pointer_like X, std::equality_comparable_with<pointee_t<X>> V>
-    requires not_same_as<V, X>
-constexpr bool is( X const& x, V const& value ) {
-    return !is<empty>(x) && *x == value;
-}
-
-template <pointer_like X, callable_with_explicit_type<pointee_t<X>> V>
-    requires not_same_as<V, X>
-constexpr auto is( X const&, V const& ) -> std::true_type {
-    return {};
-}
-
-
-//  as
+//  is Type
 //
+template<typename T, typename... Ts>
+auto is( std::variant<Ts...> const& x ) {
+    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
+        if constexpr (std::is_same_v< typename It::type, T >) { return x.index() == It::index; } else { return false; }
+    }) != std::variant_npos;
+}
+
+template<template <typename...> class C, specialization_of_template<std::variant> T>
+auto is( T&& x ) {
+    return type_find_if(x, [&]<typename It>(It const&) -> bool {
+        if constexpr (specialization_of_template<typename It::type, C>) { return x.index() == It::index; } else { return false; }
+    }) != std::variant_npos || specialization_of_template<T, C>;
+}
+
+template<std::same_as<empty> T, typename... Ts>
+auto is( std::variant<Ts...> const& x ) {
+    if (x.valueless_by_exception()) 
+        return true;
+    if constexpr (is_any<std::monostate, Ts...>) 
+        return std::get_if<std::monostate>(&x) != nullptr;
+    return false;
+}
+
+template<not_same_as<std::string> T, specialization_of_template<std::variant> X>
+auto as( X && x ) -> decltype(auto) {
+    constness_like_t<T, X>* ptr = nullptr;
+    type_find_if(std::forward<X>(x), [&]<typename It>(It const&) -> bool {
+        if constexpr (std::is_same_v< typename It::type, T >) { if (std::forward<X>(x).index() ==  It::index) { ptr = &std::get<It::index>(x); return true; } }; return false;
+    });
+    if (!ptr) { Throw( std::bad_variant_access(), "'as' cast failed for 'variant'"); } 
+    return forward_like<X>(*ptr);
+}
+
+template< typename C, pointer_like X >
+    requires can_bound_to<pointee_t<X>, C>
+auto as( X&& x ) -> decltype(auto) {
+    if (x) {
+        return forward_like<X>(*x);
+    }
+    Throw( std::bad_cast(), "'as' cast failed for 'pointer_like'");
+}
 
 //-----------------------------------------------------------------------
 //
