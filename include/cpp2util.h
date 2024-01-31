@@ -1671,7 +1671,7 @@ auto as( X&& x ) -> decltype(auto) {
 //  std::any is and as
 //
 
-//  is Type
+//  std::any variable is Type
 //
 template<typename T>
 constexpr auto is( std::any const& x ) -> bool
@@ -1682,7 +1682,7 @@ constexpr auto is( std::any const& x ) -> bool
     { return !x.has_value(); }
 
 
-//  is Value
+//  std::any variable is Value
 //
 
 template <std::same_as<std::any> X, has_defined_argument V>
@@ -1716,7 +1716,7 @@ auto as( X && x ) -> decltype(auto) {
 //  std::optional is and as
 //
 
-//  is Type
+//  std::optional variable is Type
 //
 template<typename T, std::same_as<std::optional<T>> X>
 constexpr auto is( X const& x ) -> bool
@@ -1734,7 +1734,7 @@ template<typename... Ts, typename C>
 auto is( std::variant<Ts...> const& x, C && value );
 
 //-------------------------------------------------------------------------------------------------------------
-//  pointer_like is
+//  pointer_like variable is value
 //
 
 template <pointer_like X, typename V>
@@ -1750,7 +1750,7 @@ constexpr auto is( X const& x, V && value) -> decltype(auto) {
 //  std::variant is and as
 //
 
-//  is Template
+//  std::variant variable is Template
 //
 
 template<template <typename...> class C, specialization_of_template<std::variant> T>
@@ -1791,7 +1791,7 @@ constexpr auto is( T&& x, C&& value ) {
     }
 }
 
-//  is Type
+//  std::variant variable is Type
 //
 template<specialization_of_template<std::variant> T, specialization_of_template<std::variant> C>
 constexpr auto is( C&& ) {
