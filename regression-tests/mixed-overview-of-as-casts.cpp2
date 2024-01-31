@@ -89,6 +89,7 @@ main: () = {
         myvariant: type == std::variant<ThrowingConstruction, std::monostate, int>;
 
         v : myvariant = ();
+        expect_throws(:() = v$.emplace<0>(42););
         expect_throws(:() = v&$*.emplace<0>(42););
         // expect_throws(:() = std::ref(v&$*).emplace<0>(42);); // TODO: check why it is not working?
 
