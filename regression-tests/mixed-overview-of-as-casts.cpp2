@@ -18,30 +18,39 @@ auto expect_throws(auto l) -> std::string {
 struct ThrowingConstruction {
     constexpr ThrowingConstruction() = default;
     ThrowingConstruction(int) { throw 1; }
+
+    operator std::string() const { return "TC"; }
 };
 
+const char ctab[] = "ctab";
+
 main: () = {
-    print_header();
+    print_header("nonesuch");
     { // nonesuch
         // i := 42;
         print("(i as A) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
     }
+    
+    print_header("smaller to bigger, bigger to smaller");
     {// smaller to bigger, bigger to smaller
         print("(u8(12) as u16) is (u16(12))", (u8(12) as u16) is (u16(12)), true);
         print("(u16(12) as u8) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
         print("(3.14f as double) is close_to(3.14f)", (3.14f as double) is (close_to(3.14f)), true, std::abs(3.14 - (3.14f as double)));
         print("(3.14d as float) is close_to(3.14f)", "N/A", "N/A", "static assert - tested in separate tests");
     }
+    print_header("signed/unsigned");
     {// signed/unsigned
         print("( u8(12) as i16) is (i16(12))", ( u8(12) as i16) is (i16(12)), true);
         print("(i16(12) as  u8) is ( u8(12))", "N/A", "N/A", "static assert - tested in separate tests");
         print("( 12 as u8) is (u8(12))", (12 as u8) is (u8(12)), true);
         print("( 12u as i8) is (i8(12))", (12u as i8) is (i8(12)), true);
     }
+    print_header("integral to floating, floating to integral");
     {// integral to floating, floating to integral
         print("( 12 as double) is (12.0)", (12 as double) is (12.0), true);
         print("( 12.0 as int) is (12)", "N/A", "N/A", "static assert - tested in separate tests");
     }
+    print_header("custom types casting");
     {// custom types casting
         print("(X<12>() as int) is (int(X<12>()))", (X<12>() as int) is (int(X<12>())), true);
     }
@@ -49,11 +58,13 @@ main: () = {
         print("(3.14 as std::optional<int>) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
         print("(3 as std::optional<double>) is (std::optional<double>(3))", (3 as std::optional<double>) is (std::optional<double>(3)), true);
     }
+    print_header("base_of");
     {// base_of
         print("( A() as A ) is A", ( A() as A ) is A, true);
         print("( C() as A ) is A", ( C() as A ) is A, true);
         print("( B() as A ) is nonesuch_", "N/A", "N/A", "static assert - tested in separate tests");
     }
+    print_header("olymorphic types");
     {// Polymorphic types
         vc: VC = ();
         vp0 : *VA<0> = vc&;
@@ -75,16 +86,18 @@ main: () = {
         print("( vp2* as VC )", expect_throws(:() = ( vp2$* as VC );), "throws");
 
     }
+    print_header("Variant");
     {// Variant
         v : std::variant<int, long, float, double, std::string> = 42;
 
-        print("( v{42} as int ) is (42)", ( v as int ) is (42), true);
+        print("( v{42} as int ) is (42)", ( v as int ), (42));
         print("( v{42} as float )", expect_throws(:() = ( v$ as float );), "throws");
 
         v = "string";
-        print("( v{\"string\"} as std::string )", ( v as std::string ) is (std::string("string")), true);
+        print("( v{\"string\"} as std::string )", ( v as std::string ), (std::string("string")));
         print("( v{\"string\"} as int )", expect_throws(:() = ( v$ as int );), "throws");
     }
+    print_header("Variant and empty");
     {// Variant and empty
         myvariant: type == std::variant<ThrowingConstruction, std::monostate, int>;
 
@@ -117,12 +130,14 @@ main: () = {
         v = 42;
     }
 
+    print_header("any");
     {// any
         a : std::any = 12;
         print("( a{12} as int ) is (12)", ( a as int ) is (12), true);
         print("( a{12} as std::string )", expect_throws(:() = a$ as std::string;), "throws");
     }
 
+    print_header("optional");
     {// optional
         o : std::optional = 42;
         print("( o{42} as int ) is (42)", ( o as int ) is (42), true);
@@ -130,6 +145,7 @@ main: () = {
         print("( o{42} as std::tuple<long> ) is (std::tuple<long>(42))", ( o as std::tuple<long> ) is (std::tuple<long>(42)), true);
     }
 
+    print_header("string");
     {// string
         print("( \"xyzzy\" as std::string ) is std::string", ( "xyzzy" as std::string ) is std::string, true, "xyzzy" as std::string);        
         print("( std::string(\"xyzzy\") as std::string ) is std::string", ( std::string("xyzzy") as std::string ) is std::string, true, std::string("xyzzy") as std::string);        
@@ -137,6 +153,99 @@ main: () = {
 
         print("( as_const(s){string} as std::string ) is std::string", ( std::as_const(s) as std::string ) is std::string, true);        
         print("( s{string} as std::string ) is std::string", ( s as std::string ) is std::string, true);        
+    }
+
+    print_header("variable as std::string with cpp2::to_string overload");
+    {
+        print("std::any() as std::string", expect_throws(:() = (std::any() as std::string);), "throws");
+        print("true as std::string", (true as std::string), "true");
+        print("false as std::string", (false as std::string), "false");
+
+        c : char = 'a';
+        print("c as std::string", (c as std::string), "a");
+
+        cstr: * const char = "cstr";
+        print("cstr as std::string", (cstr as std::string), "cstr");
+
+        arr : std::array<char,6> = "array";
+        arr_ptr : *char = arr.data();
+        print("arr_ptr as std::string", (arr_ptr as std::string), "array");
+        print("ctab as std::string", (ctab as std::string), "ctab");
+        
+        sv : std::string_view = ctab;
+        print("sv as std::string", (sv as std::string), "ctab");
+
+        str : std::string = ctab;
+        print("str as std::string", (str as std::string), "ctab");
+
+        oi : std::optional<int> = 42;
+        print("oi as std::string", (oi as std::string), "42");
+        os : std::optional<std::string> = "std::string";
+        print("os as std::string", (os as std::string), "std::string");
+
+        print("optional<optional<string>>{\"oostring\"} as std::string", (std::optional<std::optional<std::string>>("oostring") as std::string), "oostring");
+        print("optional<int>{} as std::string", (std::optional<int>() as std::string), "(empty)");
+
+        print("std::monostate{} as std::string", (std::monostate() as std::string), "(empty)");
+
+        {
+            myvariant: type == std::variant<ThrowingConstruction, std::monostate, int>;
+
+            v : myvariant = ();
+            expect_throws(:() = v&$*.emplace<0>(42););
+
+            print("variant{value_less_be_exception} as std::string", (v as std::string), "(empty)");
+            
+            v = std::monostate();
+            print("variant{std::monostate} as std::string", (v as std::string), "(empty)");
+
+            v.emplace<2>(42);
+            print("variant{42} as std::string", (v as std::string), "42");
+        }
+        {
+            recursive_variant : type == std::variant<std::variant<int,std::monostate>,std::variant<double,std::monostate>, std::monostate>;
+
+            v : recursive_variant = 42;
+            print("variant{variant{42}} as std::string", (v as std::string), "42");
+
+            v.emplace<0>(std::monostate());
+            print("variant{variant{std::monostate}} as std::string", (v as std::string),  "(empty)");
+
+            v = std::monostate();
+            print("variant{std::monostate} as std::string", (v as std::string), "(empty)");
+
+            v.emplace<1>(3.14);
+            print("variant{variant{3.14}} as std::string", (v as std::string), "3.140000");
+        }
+
+        {
+            p : std::pair<int, double> = (42, 3.14);
+            print("pair{42, 3.14} as std::string", (p as std::string),  "(42, 3.140000)");
+        }
+
+        {
+            p : std::pair<int, std::pair<long, long>> = (42, std::pair(2l,3l));
+            print("pair{42, pair{2,3}} as std::string", (p as std::string), "(42, (2, 3))");
+        }
+
+        {
+            p : std::pair<int, std::variant<int, long, std::string, std::monostate>> = (42, "test");
+            print("pair{42, variant{\"test\"}} as std::string", (p as std::string), "(42, test)");
+            p.second = std::monostate();
+            print("pair{42, variant{std::monostate}} as std::string", (p as std::string), "(42, (empty))");
+        }
+        {
+            print("ThrowingConstruction{} as std::string", (ThrowingConstruction() as std::string), "TC");
+        }
+        {
+            // A() as std::string;                      // error: static assertion failed due to requirement 'program_violates_type_safety_guarantee<std::string, A>': No cpp2::to_string overload exists for this type!
+            // std::variant<int, A>(42) as std::string; // error: static assertion failed due to requirement 'program_violates_type_safety_guarantee<std::string, std::variant<int, A>>': One of aggregate types has no cpp2::to_string overload - if you're sure you want this, use `cpp2::to_string() to force the conversion
+            print("cpp2::to_string(std::variant<int, A>(42))", (cpp2::to_string(std::variant<int, A>(42))), "42");
+        }
+        {
+            a : std::any = "string" as std::string;
+            print("std::any{\"string\"} as std::string", (a as std::string), "string");
+        }
     }
 }
 
@@ -169,7 +278,7 @@ pred_: (x) -> bool = {
     return x > 0;
 }
 
-col : std::array<int, 5> = (70, 8, 8, 8, 40);
+col : std::array<int, 5> = (70, 14, 14, 14, 40);
 
 print: (what, value, expected, comment) = {
     l := :(value) -> std::string = { 
@@ -195,7 +304,8 @@ print: (what, value, expected, result, comment) = {
     std::cout << "|" << std::endl;
 }
 
-print_header: () = {
+print_header: (title) = {
+    std::cout << "\n# (title)$\n\n";
     print("Test", "Actual", "Expected", "Result", "Comment");
     print(     std::string(col[0]-1,'-')+":"
          , ":"+std::string(col[1]-2,'-')+":"

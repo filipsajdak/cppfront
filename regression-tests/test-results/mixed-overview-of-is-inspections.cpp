@@ -7,13 +7,13 @@
 
 #line 1 "mixed-overview-of-is-inspections.cpp2"
 
-#line 219 "mixed-overview-of-is-inspections.cpp2"
+#line 263 "mixed-overview-of-is-inspections.cpp2"
 class A;
 class B;
 class C;
     
 
-#line 225 "mixed-overview-of-is-inspections.cpp2"
+#line 269 "mixed-overview-of-is-inspections.cpp2"
 template<int I> class VA;
 
 class VC;
@@ -41,26 +41,26 @@ struct ThrowingConstruction {
 #line 18 "mixed-overview-of-is-inspections.cpp2"
 auto main() -> int;
 
-#line 219 "mixed-overview-of-is-inspections.cpp2"
+#line 263 "mixed-overview-of-is-inspections.cpp2"
 class A {
       public: A() = default;
       public: A(A const&) = delete; /* No 'that' constructor, suppress copy */
       public: auto operator=(A const&) -> void = delete;
 };
-#line 220 "mixed-overview-of-is-inspections.cpp2"
+#line 264 "mixed-overview-of-is-inspections.cpp2"
 class B {
       public: B() = default;
       public: B(B const&) = delete; /* No 'that' constructor, suppress copy */
       public: auto operator=(B const&) -> void = delete;
 };
-#line 221 "mixed-overview-of-is-inspections.cpp2"
+#line 265 "mixed-overview-of-is-inspections.cpp2"
 class C: public A {
     public: C() = default;
     public: C(C const&) = delete; /* No 'that' constructor, suppress copy */
     public: auto operator=(C const&) -> void = delete;
 
 
-#line 223 "mixed-overview-of-is-inspections.cpp2"
+#line 267 "mixed-overview-of-is-inspections.cpp2"
 };
 
 template<int I> class VA {
@@ -70,7 +70,7 @@ public: virtual ~VA() noexcept;
       public: VA(VA const&) = delete; /* No 'that' constructor, suppress copy */
       public: auto operator=(VA const&) -> void = delete;
 };
-#line 226 "mixed-overview-of-is-inspections.cpp2"
+#line 270 "mixed-overview-of-is-inspections.cpp2"
 
 class VC: public VA<0>, public VA<1> {
     public: VC() = default;
@@ -78,32 +78,32 @@ class VC: public VA<0>, public VA<1> {
     public: auto operator=(VC const&) -> void = delete;
 
 
-#line 230 "mixed-overview-of-is-inspections.cpp2"
+#line 274 "mixed-overview-of-is-inspections.cpp2"
 };
 
-#line 233 "mixed-overview-of-is-inspections.cpp2"
+#line 277 "mixed-overview-of-is-inspections.cpp2"
 [[nodiscard]] auto pred_i(cpp2::in<int> x) -> bool;
 
-#line 237 "mixed-overview-of-is-inspections.cpp2"
+#line 281 "mixed-overview-of-is-inspections.cpp2"
 [[nodiscard]] auto pred_d(cpp2::in<double> x) -> bool;
 
-#line 241 "mixed-overview-of-is-inspections.cpp2"
+#line 285 "mixed-overview-of-is-inspections.cpp2"
 [[nodiscard]] auto pred_(auto const& x) -> bool;
 
-#line 245 "mixed-overview-of-is-inspections.cpp2"
+#line 289 "mixed-overview-of-is-inspections.cpp2"
 extern std::array<int,5> col;
 
 auto print(auto const& what, auto const& value, auto const& expected, auto const& comment) -> void;
 
-#line 258 "mixed-overview-of-is-inspections.cpp2"
+#line 302 "mixed-overview-of-is-inspections.cpp2"
 auto print(auto const& what, auto const& value, auto const& expected) -> void;
 
-#line 262 "mixed-overview-of-is-inspections.cpp2"
+#line 306 "mixed-overview-of-is-inspections.cpp2"
 auto print(auto const& what, auto const& value, auto const& expected, auto const& result, auto const& comment) -> void;
 
-#line 271 "mixed-overview-of-is-inspections.cpp2"
-auto print_header() -> void;
-#line 280 "mixed-overview-of-is-inspections.cpp2"
+#line 315 "mixed-overview-of-is-inspections.cpp2"
+auto print_header(auto const& title) -> void;
+#line 325 "mixed-overview-of-is-inspections.cpp2"
 
 #include <iomanip>
 #include <map>
@@ -116,8 +116,48 @@ auto print_header() -> void;
 #line 18 "mixed-overview-of-is-inspections.cpp2"
 auto main() -> int{
 
-    print_header();
-    // is template
+    print_header("type is type");
+    {
+        print("<A> is A", cpp2::is<A,A>(), true);
+        print("<A> is B", cpp2::is<A,B>(), false);
+        print("<A> is C", cpp2::is<A,C>(), false);
+        print("<B> is A", cpp2::is<B,A>(), false);
+        print("<B> is B", cpp2::is<B,B>(), true);
+        print("<B> is C", cpp2::is<B,C>(), false);
+        print("<C> is A", cpp2::is<C,A>(), true);
+        print("<C> is B", cpp2::is<C,B>(), false);
+        print("<C> is C", cpp2::is<C,C>(), true);
+    }
+
+    print_header("type is template");
+    {
+        print("<std::vector<int>> is std::vector", cpp2::is<std::vector<int>,std::vector>(), true);
+        print("<std::vector<int>> is std::array", cpp2::is<std::vector<int>,std::array>(), false);
+        print("<std::vector<int>> is std::optional", cpp2::is<std::vector<int>,std::optional>(), false);
+        print("<std::array<int, 3>> is ", cpp2::is<std::array<int,3>,std::vector>(), false);
+        print("<std::array<int, 3>> is ", cpp2::is<std::array<int,3>,std::array>(), true);
+        print("<std::array<int, 3>> is ", cpp2::is<std::array<int,3>,std::optional>(), false);
+        print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::vector>(), false);
+        print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::array>(), false);
+        print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::optional>(), true);
+    }
+
+    print_header("type is type_trait");
+    {
+        std::vector<int> v {}; 
+        print("<const std::vector<int>> is std::is_const", cpp2::is<std::vector<int> const,std::is_const>(), true);
+        print("<std::vector<int>> is std::is_const", cpp2::is<std::vector<int>,std::is_const>(), false);
+        print("<std::vector<int>&> is std::is_reference", cpp2::is<decltype(std::move(v)),std::is_reference>(), true);
+    }
+
+    print_header("type is concept");
+    {
+        // requires: clang-13+, gcc-12.1+, msvc-v19.34+
+        print("<int> is std::integral", cpp2::is<int,[]<std::integral T>() mutable -> void{}>(), true);
+        print("<double> is std::integral", cpp2::is<double,[]<std::integral T>() mutable -> void{}>(), false);
+    }
+
+    print_header("variable is template");
     {
         std::vector v {1, 2, 3}; 
         print("v is vector",   cpp2::is<std::vector>(v), true);
@@ -134,14 +174,11 @@ auto main() -> int{
 
     }
 
-    // is type
+    print_header("variable is type");
     {
         A a {}; 
         B b {}; 
         C c {}; 
-        print("C is A", cpp2::is<C,A>(), true, "not expressed in cpp2");
-        print("C is B", cpp2::is<C,B>(), false, "not expressed in cpp2");
-
         print("a is A", cpp2::is<A>(std::move(a)), true);
         print("b is A", cpp2::is<A>(std::move(b)), false);
         print("c is A", cpp2::is<A>(std::move(c)), true);
@@ -152,19 +189,27 @@ auto main() -> int{
         VA<1>* ptr_va1 {&vc}; 
         VA<0> const* cptr_va0 {&vc}; 
 
-        print("ptr_va0 is VC", cpp2::is<VC>(ptr_va0), true);
-        print("ptr_va1 is VC", cpp2::is<VC>(ptr_va1), true);
-        print("ptr_va0 is VA<1>", cpp2::is<VA<1>>(ptr_va0), true);
-        print("ptr_va1 is VA<0>", cpp2::is<VA<0>>(ptr_va1), true);
-        print("cptr_va0 is VC", cpp2::is<VC>(std::move(cptr_va0)), true);
+        print("vc is VA<0>", cpp2::is<VA<0>>(vc), true);
+        print("vc is VA<1>", cpp2::is<VA<1>>(vc), true);
+        print("vc& is *VA<0>", cpp2::is<VA<0>*>(&vc), true);
+        print("vc& is *VA<1>", cpp2::is<VA<1>*>(&vc), true);
+
+        print("ptr_va0 is *VC", cpp2::is<VC*>(ptr_va0), true);
+        print("ptr_va1 is *VC", cpp2::is<VC*>(ptr_va1), true);
+        print("ptr_va0 is *VA<1>", cpp2::is<VA<1>*>(ptr_va0), true);
+        print("ptr_va1 is *VA<0>", cpp2::is<VA<0>*>(ptr_va1), true);
+        print("cptr_va0 is *VC", cpp2::is<VC*>(cptr_va0), false);
+        print("cptr_va0 is * const VC", cpp2::is<VC const*>(cptr_va0), true);
 
         print("ptr_va0* is VC", cpp2::is<VC>(*cpp2::assert_not_null(ptr_va0)), true);
         print("ptr_va1* is VC", cpp2::is<VC>(*cpp2::assert_not_null(ptr_va1)), true);
         print("ptr_va0* is VA<1>", cpp2::is<VA<1>>(*cpp2::assert_not_null(std::move(ptr_va0))), true);
         print("ptr_va1* is VA<0>", cpp2::is<VA<0>>(*cpp2::assert_not_null(std::move(ptr_va1))), true);
+        print("cptr_va0* is VC", cpp2::is<VC>(*cpp2::assert_not_null(cptr_va0)), false);
+        print("cptr_va0* is const VC", cpp2::is<VC const>(*cpp2::assert_not_null(std::move(cptr_va0))), true);
     }
 
-    // pointer-like empty check
+    print_header("pointer-like variable is empty");
     {
         print("raw_null is empty", cpp2::is<cpp2::empty>(raw_null), true);
         print("nullptr is empty", cpp2::is<cpp2::empty>(nullptr), true);
@@ -177,7 +222,7 @@ auto main() -> int{
         print("std::make_unique<int>(44) is empty", cpp2::is<cpp2::empty>(std::make_unique<int>(44)), false);
     }
 
-    // values check
+    print_header("variable is value");
     {
         auto i {42}; 
         print("i{42} is empty", cpp2::is<cpp2::empty>(i), false);
@@ -194,19 +239,19 @@ auto main() -> int{
         print("3.14f is (close_to(3.14 ))",  cpp2::is(3.14f, (close_to(3.14))), true);
         print("3.14  is (close_to(3.14f))",  cpp2::is(3.14, (std::move(close_to)(3.14f))), true);
     }
-/*
-    // type_trait
-    {
-        i  : int       = 42;
-        ci : const int = 24;
 
-        print("i{int} is std::is_const",                  i is std::is_const, false);
-        print("ci{const int} is std::is_const",          ci is std::is_const, true);
-        print("ci{const int} is std::is_integral",       ci is std::is_integral, true);
-        print("ci{const int} is std::is_floating_point", ci is std::is_floating_point, false);
+    print_header("variable is type_trait");
+    {
+        int i {42}; 
+        int const ci {24}; 
+
+        print("i{int} is std::is_const",                  cpp2::is<std::is_const>(std::move(i)), false);
+        print("ci{const int} is std::is_const",          cpp2::is<std::is_const>(ci), true);
+        print("ci{const int} is std::is_integral",       cpp2::is<std::is_integral>(ci), true);
+        print("ci{const int} is std::is_floating_point", cpp2::is<std::is_floating_point>(std::move(ci)), false);
     }
-*/
-    // predicate
+
+    print_header("variable is predicate");
     {
         auto d {3.14}; 
 
@@ -224,7 +269,7 @@ auto main() -> int{
         print("d{3.14} is (:<T:std::integral> () = {})", cpp2::is(std::move(d), ([]<std::integral T>() mutable -> void{})), false);
     }
 
-    // is variant value
+    print_header("variant variable is value");
     {
         std::variant<int,long,float,double,std::string,std::vector<int>> v {42}; 
 
@@ -251,10 +296,10 @@ auto main() -> int{
         print("v{std::vector{1,2,3,4}} is std::variant",     cpp2::is<std::variant>(std::move(v)), true);
     }
 
-    // is variant value
+    print_header("variant variable is empty");
     {
         std::variant<int,ThrowingConstruction,std::monostate> v {}; 
-        print("v{int} is empty", cpp2::is<cpp2::empty>(v), false);
+        print("v{int} is empty", cpp2::is<cpp2::empty>(v), false, "v contains default value of first type");
 
         v = std::monostate();
         print("v{monostate} is empty", cpp2::is<cpp2::empty>(v), true);
@@ -264,7 +309,7 @@ auto main() -> int{
 
     }
 
-    // any is type
+    print_header("any variable is type");
     {
         std::any a {42}; 
 
@@ -275,7 +320,7 @@ auto main() -> int{
         print("std::any() is empty", cpp2::is<cpp2::empty>(std::any()), true);
     }
 
-    // any is value
+    print_header("any variable is value");
     {
         std::any a {42}; 
 
@@ -289,7 +334,7 @@ auto main() -> int{
         print("a{42} is :(v:int)->bool = v>0;", cpp2::is(std::move(a), [](cpp2::in<int> v) mutable -> bool { return cpp2::cmp_greater(v,0); }), true);
     }
 
-    // optional is type
+    print_header("optional variable is type");
     {
         std::optional o {42}; 
 
@@ -298,7 +343,7 @@ auto main() -> int{
         print("std::optional<int>() is empty",  cpp2::is<cpp2::empty>(std::optional<int>()), true);
     }
 
-    // optional is value
+    print_header("optional variable is value");
     {
         std::optional o {42}; 
 
@@ -310,14 +355,13 @@ auto main() -> int{
         print("o{42} is :(v:std::optional<int>) -> bool = v > 0;",   cpp2::is(o, [](cpp2::in<std::optional<int>> v) mutable -> bool { return cpp2::cmp_greater(v,0); }), true);
         print("o{42} is :(v:std::optional<long>) -> bool = v > 0;",   cpp2::is(std::move(o), [](cpp2::in<std::optional<long>> v) mutable -> bool { return cpp2::cmp_greater(v,0); }), true);
         print("std::optional(3.14) is :(v:std::optional<int>) -> bool = v == 3;", cpp2::is(std::optional(3.14), [](cpp2::in<std::optional<int>> v) mutable -> bool { return *cpp2::assert_not_null(v) == 3; }), false);
-
     }
 
 }
 
 template <int I> VA<I>::~VA() noexcept{}
 
-#line 233 "mixed-overview-of-is-inspections.cpp2"
+#line 277 "mixed-overview-of-is-inspections.cpp2"
 [[nodiscard]] auto pred_i(cpp2::in<int> x) -> bool{
     return cpp2::cmp_greater(x,0); 
 }
@@ -330,7 +374,7 @@ template <int I> VA<I>::~VA() noexcept{}
     return cpp2::cmp_greater(x,0); 
 }
 
-std::array<int,5> col {70, 8, 8, 8, 30}; 
+std::array<int,5> col {70, 8, 8, 8, 40}; 
 
 auto print(auto const& what, auto const& value, auto const& expected, auto const& comment) -> void{
     auto l {[](auto const& value) mutable -> std::string{
@@ -356,7 +400,8 @@ auto print(auto const& what, auto const& value, auto const& expected, auto const
     std::cout << "|" << std::endl;
 }
 
-auto print_header() -> void{
+auto print_header(auto const& title) -> void{
+    std::cout << "\n# " + cpp2::to_string(title) + "\n\n";
     print("Test", "Actual", "Expected", "Result", "Comment");
     print(     std::string(CPP2_ASSERT_IN_BOUNDS(col, 0) - 1, '-') + ":", 
          ":" + std::string(CPP2_ASSERT_IN_BOUNDS(col, 1) - 2, '-') + ":", 

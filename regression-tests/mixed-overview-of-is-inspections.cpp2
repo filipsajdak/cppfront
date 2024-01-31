@@ -80,9 +80,6 @@ main: () = {
         a: A = ();
         b: B = ();
         c: C = ();
-        print("C is A", cpp2::is<C, A>() , true, "not expressed in cpp2");
-        print("C is B", cpp2::is<C, B>() , false, "not expressed in cpp2");
-        
         print("a is A", a is A, true);
         print("b is A", b is A, false);
         print("c is A", c is A, true);
@@ -92,6 +89,11 @@ main: () = {
         ptr_va0: *VA<0> = vc&;
         ptr_va1: *VA<1> = vc&;
         cptr_va0: * const VA<0> = vc&;
+
+        print("vc is VA<0>", vc is VA<0>, true);
+        print("vc is VA<1>", vc is VA<1>, true);
+        print("vc& is *VA<0>", vc& is *VA<0>, true);
+        print("vc& is *VA<1>", vc& is *VA<1>, true);
 
         print("ptr_va0 is *VC", ptr_va0 is *VC, true);
         print("ptr_va1 is *VC", ptr_va1 is *VC, true);
