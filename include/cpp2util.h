@@ -1664,11 +1664,6 @@ constexpr auto is( std::any const& x ) -> bool
 //  is Value
 //
 
-template <std::same_as<std::any> X, has_custom_operator_is<X> V>
-constexpr bool is( X const& x, V && value ) {
-    return value.op_is(x);
-}
-
 template <std::same_as<std::any> X, has_defined_argument V>
     requires not_same_as<argument_of_t<V>, X>
 constexpr bool is( X const& x, V && value ) {
