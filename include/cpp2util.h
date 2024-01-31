@@ -1258,6 +1258,10 @@ inline auto to_string(T const& s) -> std::string
     return std::string{s};
 }
 
+inline auto to_string(std::same_as<std::monostate> auto const&) -> std::string {
+    return "(empty)";
+}
+
 template <typename... Ts>
 inline auto to_string(std::variant<Ts...> const& v) -> std::string;
 
@@ -1268,16 +1272,7 @@ template < typename... Ts>
 inline auto to_string(std::tuple<Ts...> const& t) -> std::string;
 
 template<typename T>
-inline auto to_string(std::optional<T> const& o) -> std::string {
-    if (o.has_value()) {
-        return cpp2::to_string(o.value());
-    }
-    return "(empty)";
-}
-
-inline auto to_string(std::same_as<std::monostate> auto const&) -> std::string {
-    return "(empty)";
-}
+inline auto to_string(std::optional<T> const& o) -> std::string;
 
 template <typename T>
 concept has_to_string_overload = requires{ static_cast<std::string (*)(std::remove_cvref_t<T> const&)>(&to_string); }
@@ -1286,24 +1281,34 @@ concept has_to_string_overload = requires{ static_cast<std::string (*)(std::remo
 template <typename T>
 concept no_to_string_overload = !has_to_string_overload<T>;
 
+auto to_string__impl__ = []<typename T>(T const& arg) -> std::string {
+    if constexpr (has_to_string_overload<T> || std::is_copy_constructible_v<T>) {
+        return cpp2::to_string(arg);
+    } else {
+        return cpp2::to_string(std::ref(arg)); // cpp2::to_string(...) requires copy constructible type
+    }
+};
+
+template<typename T>
+inline auto to_string(std::optional<T> const& o) -> std::string {
+    if (o.has_value()) {
+        return to_string__impl__(o.value());
+    }
+    return "(empty)";
+}
+
 template <typename... Ts>
 inline auto to_string(std::variant<Ts...> const& v) -> std::string
 {
     if (v.valueless_by_exception()) return "(empty)";
 
-    return std::visit([]<typename T>(T const& arg) -> std::string {
-        if constexpr (has_to_string_overload<T> || std::is_copy_constructible_v<T>) {
-            return cpp2::to_string(arg);
-        } else {
-            return cpp2::to_string(std::ref(arg)); // cpp2::to_string(...) requires copy constructible type
-        }
-    }, v);
+    return std::visit(to_string__impl__, v);
 }
 
 template < typename T, typename U>
 inline auto to_string(std::pair<T,U> const& p) -> std::string
 {
-    return "(" + cpp2::to_string(p.first) + ", " + cpp2::to_string(p.second) + ")";
+    return "(" + to_string__impl__(p.first) + ", " + to_string__impl__(p.second) + ")";
 }
 
 template < typename... Ts>
@@ -1312,15 +1317,9 @@ inline auto to_string(std::tuple<Ts...> const& t) -> std::string
     if constexpr (sizeof...(Ts) == 0) {
         return "()";
     } else {
-        std::string out = "(" + cpp2::to_string(std::get<0>(t));
+        std::string out = "(" + to_string__impl__(std::get<0>(t));
         std::apply([&out](auto&&, auto&&... args) {
-            ((out += ", " + []<typename T>(T const& arg) { 
-                                if constexpr (has_to_string_overload<T> || std::is_copy_constructible_v<T>) {
-                                    return cpp2::to_string(arg);
-                                } else {
-                                    return cpp2::to_string(std::ref(arg)); // cpp2::to_string(...) requires copy constructible type
-                                }
-                            }(args)), ...);
+            ((out += ", " + to_string__impl__(args)), ...);
         }, t);
         out += ")";
         return out;
