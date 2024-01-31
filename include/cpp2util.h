@@ -1270,6 +1270,13 @@ inline auto to_string(std::same_as<std::monostate> auto const&) -> std::string {
     return "(empty)";
 }
 
+template <typename T>
+concept has_to_string_overload = requires{ static_cast<std::string (*)(std::remove_cvref_t<T> const&)>(&to_string); }
+                                 || requires{ static_cast<std::string (*)(std::remove_cvref_t<T>)>(&to_string); };
+
+template <typename T>
+concept no_to_string_overload = !has_to_string_overload<T>;
+
 template <typename... Ts>
 inline auto to_string(std::variant<Ts...> const& v) -> std::string
 {
@@ -1341,23 +1348,31 @@ concept nonesuch_specialization = requires (X x) {
 //
 //  and "as std::string" for the same cases
 //
-template <typename T>
-concept has_to_string_overload = requires{ static_cast<std::string (*)(std::remove_cvref_t<T> const&)>(&to_string); }
-                                 || requires{ static_cast<std::string (*)(std::remove_cvref_t<T>)>(&to_string); };
-
-template <std::same_as<std::string> C, not_one_of<std::any, std::string> X>
-    requires has_to_string_overload<X>
-auto as( X&& x ) -> decltype(auto) { 
-    return to_string(x); 
+template <template<typename...> class C, typename... Ts>
+constexpr auto has_recursive_to_string_overload(C<Ts...> const&)
+{
+    if constexpr ((has_to_string_overload<Ts> && ...)) {
+        return std::true_type{};
+    } else {
+        return std::false_type{};
+    }
 }
 
-template <std::same_as<std::string> C, pointer_like X>
-    requires (!can_bound_to<pointee_t<X>, C>)
-auto as( X&& x ) -> decltype(auto) { 
-    if (x) {
-        return as<C>(forward_like<X>(*x));
+
+template <std::same_as<std::string> C, has_to_string_overload X>
+    requires not_same_as<X, std::string> && (same_type_as<X, bool> || no_brace_initializable_to<X, C>)
+auto as( X&& x ) {
+    if constexpr (same_type_as<X, std::any>) {
+        return nonesuch_<cpp2::casting_errors::no_to_string_cast>{};
+    } else if constexpr (specialization_of_template<X, std::variant> 
+        && requires {
+            { has_recursive_to_string_overload(x) } -> std::same_as<std::false_type>;
+        }
+    ) {
+        return nonesuch_<cpp2::casting_errors::no_to_string_cast_for_aggregate_types>{};
+    } else {
+        return to_string(x); 
     }
-    return std::string("(empty)");
 }
 
 //-----------------------------------------------------------------------
