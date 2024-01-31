@@ -1523,6 +1523,17 @@ constexpr bool is( X const& x, V && value ) {
     return x == value;
 }
 
+template <not_pointer_like X, std::equality_comparable_with<X> V>
+    requires std::ranges::range<X> && std::ranges::range<V> && std::equality_comparable_with<std::ranges::range_value_t<X>, std::ranges::range_value_t<V>> 
+constexpr bool is( X const& x, V && value ) {
+    if constexpr (std::convertible_to<X, std::string_view> && std::convertible_to<V, std::string_view>) {
+        return std::string_view(x) == std::string_view(value);
+    } else {
+        return std::equal(std::cbegin(x), std::cend(x),
+                        std::cbegin(value), std::cend(value));
+    }
+}
+
 template <typename X, callable_with_explicit_type<X> V>
 constexpr auto is( X const&, V &&) -> std::true_type {
     return {};
