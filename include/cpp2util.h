@@ -444,6 +444,10 @@ concept covertible_to_argument_of = same_type_as<X,argument_of_t<F>>
                                  || (!pointer_like<argument_of_t<F>> && brace_initializable_to<X, argument_of_t<F>>)
                                  ;
 
+template <typename F, typename X>
+concept valid_predicate = (std::predicate<F, X> && !has_defined_argument<F>)
+                          || (std::predicate<F, X> && has_defined_argument<F> && covertible_to_argument_of<X, F>);
+
 template <typename V, typename X>
 concept callable_with_explicit_type = requires (V value) {
     {value.template operator()<X>()};
@@ -1513,21 +1517,9 @@ constexpr bool is( X const& x, V const& value ) {
     return value.op_is(x);
 }
 
-template <not_pointer_like X, std::predicate<X> V>
+template <not_pointer_like X, valid_predicate<X> V>
 constexpr bool is( X const& x, V const& value ) {
     return value(x);
-}
-
-template <not_pointer_like X, std::predicate<X> V>
-    requires has_defined_argument<V> // but not explicit castable
-constexpr auto is( X const&, V const& ) -> std::false_type {
-    return {};
-}
-
-template <not_pointer_like X, std::predicate<X> V>
-    requires has_defined_argument<V> && covertible_to_argument_of<X, V>
-constexpr bool is( X const& x, V const& value ) {
-    return value(x); 
 }
 
 template <not_pointer_like X, std::equality_comparable_with<X> V>
