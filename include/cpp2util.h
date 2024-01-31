@@ -1793,12 +1793,13 @@ constexpr auto is( T&& x, C&& value ) {
 
 //  is Type
 //
-template<typename T, typename... Ts>
-auto is( std::variant<Ts...> const& x ) {
-    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if (x.index() == It::index) { return is<T>(std::get<It::index>(x));}
-        return false;
-    }) != std::variant_npos || std::same_as<std::variant<Ts...>, T>;
+template<specialization_of_template<std::variant> T, specialization_of_template<std::variant> C>
+constexpr auto is( C&& ) {
+    if constexpr (std::same_as<std::remove_cvref_t<T>, std::remove_cvref_t<C>>) {
+        return std::true_type{};
+    } else {
+        return std::false_type{};
+    }
 }
 
 template<template <typename...> class C, specialization_of_template<std::variant> T>
