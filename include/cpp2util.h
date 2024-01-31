@@ -348,6 +348,9 @@ using pointee_t = std::iter_value_t<T>;
 template <typename T>
 using value_type_of_t = typename std::remove_cvref_t<T>::value_type;
 
+template <typename R>
+using range_value_t = std::iter_value_t<decltype(std::begin(std::declval<R>()))>;
+
 template <template <typename...> class C, typename... Ts>
 constexpr auto specialization_of_template_helper(C< Ts...> const& ) -> std::true_type {
     return {};
@@ -491,6 +494,12 @@ concept can_bound_to = can_bound_to__impl__<X, C>
 
 template <typename X, typename C>
 concept cannot_bound_to = !can_bound_to<X,C> && !can_bound_to<pointee_t<X>, C>;
+
+template <typename X>
+concept range = requires(X& x) {
+    std::begin(x);
+    std::end(x);
+};
 
 //-----------------------------------------------------------------------
 //
@@ -1554,7 +1563,7 @@ constexpr bool is( X const& x, V && value ) {
 }
 
 template <not_pointer_like X, std::equality_comparable_with<X> V>
-    requires std::ranges::range<X> && std::ranges::range<V> && std::equality_comparable_with<std::ranges::range_value_t<X>, std::ranges::range_value_t<V>> 
+    requires range<X> && range<V> && std::equality_comparable_with<range_value_t<X>, range_value_t<V>> 
 constexpr bool is( X const& x, V && value ) {
     if constexpr (std::convertible_to<X, std::string_view> && std::convertible_to<V, std::string_view>) {
         return std::string_view(x) == std::string_view(value);
@@ -1564,8 +1573,8 @@ constexpr bool is( X const& x, V && value ) {
     }
 }
 
-template <std::ranges::range X, std::ranges::range V>
-    requires std::equality_comparable_with<std::ranges::range_value_t<X>, std::ranges::range_value_t<V>> 
+template <range X, range V>
+    requires std::equality_comparable_with<range_value_t<X>, range_value_t<V>> 
 constexpr bool is( X const& x, V && value ) {
     return std::equal(std::cbegin(x), std::cend(x),
                       std::cbegin(value), std::cend(value));
