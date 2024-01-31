@@ -1362,11 +1362,9 @@ constexpr auto has_recursive_to_string_overload(C<Ts...> const&)
 
 
 template <std::same_as<std::string> C, has_to_string_overload X>
-    requires not_same_as<X, std::string> && (same_type_as<X, bool> || no_brace_initializable_to<X, C>)
+    requires not_one_of<X, std::string, std::any> && (same_type_as<X, bool> || no_brace_initializable_to<X, C>)
 auto as( X&& x ) {
-    if constexpr (same_type_as<X, std::any>) {
-        return nonesuch_<cpp2::casting_errors::no_to_string_cast>{};
-    } else if constexpr (specialization_of_template<X, std::variant> 
+    if constexpr (specialization_of_template<X, std::variant> 
         && requires {
             { has_recursive_to_string_overload(x) } -> std::same_as<std::false_type>;
         }
