@@ -436,7 +436,7 @@ template <typename T>
 concept arithmetic = std::is_arithmetic_v<std::remove_cvref_t<T>>;
 
 template< typename X, typename C >
-concept same_type_as = std::same_as<std::remove_cvref_t<X>, C>;
+concept same_type_as = std::same_as<std::remove_cvref_t<X>, std::remove_cvref_t<C>>;
 
 template <typename X, typename C>
 concept not_same_as = !same_type_as<X, C>;
