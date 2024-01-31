@@ -1409,6 +1409,9 @@ constexpr auto is() {
     }
 }
 
+//  Variable is Template
+//
+
 template <template <typename, typename...> class C, specialization_of_template<C> X>
     requires (!specialization_of_template<X, std::variant>)
 constexpr auto is( X&& ) -> std::true_type {
