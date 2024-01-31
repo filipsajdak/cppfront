@@ -1490,8 +1490,12 @@ template< polymorphic C, polymorphic X >
 constexpr auto is( X const& ) -> std::true_type { return {}; }
 
 template< polymorphic C, polymorphic X >
-constexpr auto is( X const& x ) -> bool {
-    return Dynamic_cast<C const*>(&x) != nullptr;
+constexpr auto is( X&& x ) {
+    if constexpr ( const_type<std::remove_reference_t<X>> && !const_type<C>) {
+        return std::false_type{};
+    } else {
+        return Dynamic_cast<std::add_pointer_t<C>>(&x) != nullptr;
+    }
 }
 
 template< polymorphic_pointer C, polymorphic_pointer X >
@@ -1499,8 +1503,12 @@ template< polymorphic_pointer C, polymorphic_pointer X >
 constexpr auto is( X const& ) -> std::true_type { return {}; }
 
 template< polymorphic_pointer C, polymorphic_pointer X >
-constexpr auto is( X const& x ) -> bool {
-    return Dynamic_cast<const std::remove_pointer_t<C>*>(x) != nullptr;
+constexpr auto is( X&& x ) {
+    if constexpr ( const_type<std::remove_pointer_t<std::remove_reference_t<X>>> && !const_type<std::remove_pointer_t<C>>) {
+        return std::false_type{};
+    } else {
+        return Dynamic_cast<std::add_pointer_t<std::add_const_t<std::remove_pointer_t<C>>>>(x) != nullptr;
+    }
 }
 
 template< std::same_as<empty> C, pointer_like X >
