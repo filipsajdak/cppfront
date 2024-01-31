@@ -387,6 +387,9 @@ template <typename X>
 concept pointer = std::is_pointer_v<std::remove_cvref_t<X>>;
 
 template <typename X>
+concept reference = std::is_reference_v<X&&>;
+
+template <typename X>
 concept polymorphic_pointer = pointer<X> 
                         && polymorphic<std::remove_pointer_t<std::remove_cvref_t<X>>>;
 
@@ -436,8 +439,10 @@ concept has_defined_argument = requires {
 };
 
 template <typename X, typename F>
-concept covertible_to_argument_of = same_type_as<X,argument_of_t<F>> 
-                                 || brace_initializable_to<X, argument_of_t<F>>;
+concept covertible_to_argument_of = same_type_as<X,argument_of_t<F>>
+                                 || (pointer_like<argument_of_t<F>> && brace_initializable_to<X, pointee_t<argument_of_t<F>>>)
+                                 || (!pointer_like<argument_of_t<F>> && brace_initializable_to<X, argument_of_t<F>>)
+                                 ;
 
 template <typename V, typename X>
 concept callable_with_explicit_type = requires (V value) {
@@ -1396,6 +1401,7 @@ auto is() -> std::true_type { return {}; }
 //  Templates
 //
 template <template <typename...> class C, specialization_of_template<C> X>
+    requires (!specialization_of_template<X, std::variant>)
 constexpr auto is( X&& ) -> std::true_type {
     return {};
 }
@@ -1628,11 +1634,8 @@ auto as( X&& x ) -> decltype(auto) {
     return std::forward<forward_like_t<C,X&&>>(x);
 }
 
-template <typename X>
-concept reference = std::is_reference_v<X&&>;
-
 template< polymorphic C, polymorphic X >
-    requires (reference<X> && !can_bound_to<X, C>)
+    requires reference<X> && (!std::derived_from<std::remove_cvref_t<X>, C>)
 auto as( X&& x ) -> decltype(auto) {
     return dynamic_cast<forward_like_t<C,X&&>>(std::forward<X>(x));
 }
@@ -1701,6 +1704,13 @@ auto is( std::variant<Ts...> const& x ) {
     return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
         if constexpr (std::is_same_v< typename It::type, T >) { return x.index() == It::index; } else { return false; }
     }) != std::variant_npos;
+}
+
+template<template <typename...> class C, specialization_of_template<std::variant> T>
+auto is( T&& x ) {
+    return type_find_if(x, [&]<typename It>(It const&) -> bool {
+        if constexpr (specialization_of_template<typename It::type, C>) { return x.index() == It::index; } else { return false; }
+    }) != std::variant_npos || specialization_of_template<T, C>;
 }
 
 template<std::same_as<empty> T, typename... Ts>
