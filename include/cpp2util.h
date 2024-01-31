@@ -474,7 +474,9 @@ concept enum_type = std::is_enum_v<std::remove_cvref_t<T>>;
 
 template <typename X, typename C>
 concept can_bound_to__impl__ = same_type_as<X, C> 
-                       || std::derived_from<X, C>
+                       || (
+                            std::derived_from<std::remove_cvref_t<X>, std::remove_cvref_t<C>> 
+                        )
                        || (
                             !(polymorphic<X> && polymorphic<C>)
                             && requires (X x){ static_cast<C&>(x); }
