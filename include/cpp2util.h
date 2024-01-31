@@ -1569,7 +1569,7 @@ template <std::same_as<std::string>, cannot_bound_to<std::string> X>
 auto as( X&& ) -> nonesuch_<casting_errors::no_to_string_cast> { return {}; }
 
 template< typename From, typename To > // https://eel.is/c++draft/dcl.init.list#7
-concept narrowing_to = arithmetic<From> && arithmetic<To> && !brace_initializable_to<std::remove_cvref_t<From>, To>;
+concept narrowing_to = arithmetic<From> && arithmetic<To> && !brace_initializable_to<From, To>;
 
 template <typename... Ts>
 inline constexpr auto program_violates_type_safety_guarantee = sizeof...(Ts) < 0;
