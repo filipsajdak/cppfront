@@ -353,6 +353,11 @@ constexpr auto specialization_of_template_helper(C< Ts...> const& ) -> std::true
     return {};
 }
 
+template <template <typename, auto> class C, typename T, auto N>
+constexpr auto specialization_of_template_helper(C< T, N > const& ) -> std::true_type {
+    return {};
+}
+
 //-----------------------------------------------------------------------
 //
 //  Concepts
@@ -361,7 +366,12 @@ constexpr auto specialization_of_template_helper(C< Ts...> const& ) -> std::true
 //
 
 template <typename X, template<typename...> class C>
-concept specialization_of_template = requires (std::remove_cvref_t<X> x) {
+concept specialization_of_template = requires (X x) {
+    { specialization_of_template_helper<C>(std::forward<X>(x)) } -> std::same_as<std::true_type>;
+};
+
+template <typename X, template<typename,auto> class C>
+concept specialization_of_template_type_and_nttp = requires (X x) {
     { specialization_of_template_helper<C>(std::forward<X>(x)) } -> std::same_as<std::true_type>;
 };
 
@@ -1339,6 +1349,49 @@ auto as( X&& x ) -> decltype(auto) {
 //  TODO: Does this really warrant a new synonym? Perhaps "is void" is enough
 using empty = void;
 
+//  Type is Type
+//
+
+template <typename X, typename C>
+auto is() -> std::false_type { return {}; }
+
+template <typename X, typename C>
+    requires std::same_as<X, C> || std::derived_from<X,C>
+auto is() -> std::true_type { return {}; }
+
+//  Type is Template
+//
+
+template <typename X, template <typename...> class C>
+auto is() -> std::false_type { return {}; }
+
+template <typename X, template <typename...> class C>
+    requires specialization_of_template<X, C>
+auto is() -> std::true_type { return {}; }
+
+template <typename X, template <typename,auto> class C>
+auto is() -> std::false_type { return {}; }
+
+template <typename X, template <typename,auto> class C>
+    requires specialization_of_template_type_and_nttp<X, C>
+auto is() -> std::true_type { return {}; }
+
+//  Type is Type Traits
+//
+
+template <typename  X, template <typename> class C>
+    requires std::derived_from<C<X>, std::true_type>
+            || std::derived_from<C<X>, std::false_type>
+auto is() -> C<X> { return {}; }
+
+//  Type is Concept
+//
+
+template <typename X, auto C>
+auto is() -> std::false_type { return {}; }
+
+template <typename X, callable_with_explicit_type<X> auto C>
+auto is() -> std::true_type { return {}; }
 
 //  Templates
 //
