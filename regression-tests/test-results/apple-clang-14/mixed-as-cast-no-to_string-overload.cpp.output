@@ -1,5 +1,5 @@
 In file included from mixed-as-cast-no-to_string-overload.cpp:6:
-../../../include/cpp2util.h:2168:9: error: static_assert failed due to requirement 'program_violates_type_safety_guarantee<std::string, A>' "No cpp2::to_string overload exists for this type!"
+../../../include/cpp2util.h:2167:9: error: static_assert failed due to requirement 'program_violates_type_safety_guarantee<std::string, A>' "No cpp2::to_string overload exists for this type!"
         static_assert(
         ^
 mixed-as-cast-no-to_string-overload.cpp2:2:11: note: in instantiation of function template specialization 'cpp2::as_<std::string, A>' requested here
