@@ -1768,15 +1768,19 @@ constexpr auto is( std::variant<Ts...> const& ) -> std::true_type {
     return {};
 }
 
-//  is Value
+//  std::variant variable is Value
 //
 
-template<typename... Ts, typename C>
-auto is( std::variant<Ts...> const& x, C && value ) {
-    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if (x.index() ==  It::index) { return is(std::get<It::index>(x), std::forward<C>(value)); }
-        return false;
-    }) != std::variant_npos;
+template<specialization_of_template<std::variant> T, typename C>
+constexpr auto is( T&& x, C&& value ) {
+    if constexpr (std::same_as<T,C>) {
+        return x == value;
+    } else {
+        return type_find_if(x, [&]<typename It>(It const&) -> bool {
+            if (x.index() == It::index) { return is(forward_like<T>(std::get<It::index>(x)), std::forward<C>(value));}
+            return false;
+        }) != std::variant_npos;
+    }
 }
 
 //  is Type
