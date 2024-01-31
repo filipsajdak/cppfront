@@ -4365,7 +4365,7 @@ auto pre(int indent)
     assert (indent >= 0);
     return {
         indent_str.c_str(),
-        as<size_t>( std::min( indent*indent_spaces, _as<int>(std::ssize(indent_str))) )
+        unsafe_narrow<size_t>( std::min( indent*indent_spaces, _as<int>(std::ssize(indent_str))) )
     };
 }
 

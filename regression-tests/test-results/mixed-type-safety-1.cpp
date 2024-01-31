@@ -27,7 +27,7 @@ class Square : public Shape { };
 auto print(cpp2::in<std::string> msg, auto const& x) -> void;
 
 #line 16 "mixed-type-safety-1.cpp2"
-auto print(cpp2::in<std::string> msg, cpp2::in<bool> b) -> void;
+template<std::convertible_to<bool> B> auto print(cpp2::in<std::string> msg, B b) -> void;
 
 #line 24 "mixed-type-safety-1.cpp2"
 //--- examples -------------------------
@@ -42,11 +42,10 @@ auto print(cpp2::in<std::string> msg, cpp2::in<bool> b) -> void;
 auto print(cpp2::in<std::string> msg, auto const& x) -> void { 
     std::cout << msg << x << "\n";  }
 
-#line 16 "mixed-type-safety-1.cpp2"
-auto print(cpp2::in<std::string> msg, cpp2::in<bool> b) -> void
+template<std::convertible_to<bool> B> auto print(cpp2::in<std::string> msg, B b) -> void
 {
     cpp2::deferred_init<char const*> bmsg; 
-    if (b) { bmsg.construct("true");}
+    if (std::move(b)) {bmsg.construct("true");}
     else {bmsg.construct("false"); }
     std::cout << msg << std::move(bmsg.value()) << "\n";
 }

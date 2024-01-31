@@ -13,7 +13,7 @@ class Square : public Shape { };
 print: ( msg: std::string, x: _ ) =
     std::cout << msg << x << "\n";
 
-print: ( msg: std::string, b: bool ) =
+print: <B:std::convertible_to<bool>> ( msg: std::string, copy b: B ) =
 {
     bmsg: * const char;
     if b { bmsg = "true";  }
