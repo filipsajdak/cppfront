@@ -1395,7 +1395,7 @@ constexpr auto is() -> std::true_type { return {}; }
 
 template <typename  X, template <typename, typename...> class C>
     requires type_trait<C>
-auto is() -> C<X> { return {}; }
+constexpr auto is() -> C<X> { return {}; }
 
 //  Type is Concept
 //
