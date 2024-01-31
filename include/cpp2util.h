@@ -420,6 +420,9 @@ concept not_pointer_like = !pointer_like<X>;
 template< typename From, typename To >
 concept brace_initializable_to = requires (From x) { To{x}; };
 
+template< typename From, typename To >
+concept no_brace_initializable_to = !brace_initializable_to<From, To>;
+
 template <typename C, typename X>
 concept different_sign_types = std::is_signed_v<std::remove_cvref_t<C>> != std::is_signed_v<std::remove_cvref_t<X>>;
 
