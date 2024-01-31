@@ -1675,10 +1675,10 @@ template <std::same_as<std::any> X, std::equality_comparable V>
 constexpr bool is( X const& x, V && value ) {
     if constexpr (pointer_like<V>) {
         auto* ptr = std::any_cast<pointee_t<V>>(&x);
-        return ptr && !is<empty>(value) && (*ptr == *value);
+        return ptr && !is<empty>(value) && is(*ptr, *value);
     } else {
-        auto* ptr = std::any_cast<V>(&x);
-        return ptr && (*ptr == value);
+        auto* ptr = std::any_cast<std::remove_cvref_t<V>>(&x);
+        return ptr && is(*ptr, std::forward<V>(value));
     }
 }
 
