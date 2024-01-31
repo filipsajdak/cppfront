@@ -2221,6 +2221,10 @@ auto as_( X&& x ) -> decltype(auto)
         static_assert(
             program_violates_type_safety_guarantee<C, X>,
             "No cpp2::to_string overload exists for this type!");
+    } else if constexpr ( requires { {as<C>(std::forward<X>(x))} -> std::same_as<nonesuch_<casting_errors::no_to_string_cast_for_aggregate_types>>; } ) {
+        static_assert(
+            program_violates_type_safety_guarantee<C, X>,
+            "One of aggregate types has no cpp2::to_string overload - if you're sure you want this, use `cpp2::to_string() to force the conversion");
     } else if constexpr ( 
         requires { {as<C>(std::forward<X>(x))} -> nonesuch_specialization; } 
     ) {
