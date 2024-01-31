@@ -1773,14 +1773,16 @@ auto is( std::variant<Ts...> const& x, C const& value ) {
 template<typename T, typename... Ts>
 auto is( std::variant<Ts...> const& x ) {
     return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if constexpr (std::is_same_v< typename It::type, T >) { return x.index() == It::index; } else { return false; }
+        if (x.index() == It::index) { return is<T>(std::get<It::index>(x));}
+        return false;
     }) != std::variant_npos;
 }
 
 template<template <typename...> class C, specialization_of_template<std::variant> T>
 auto is( T&& x ) {
     return type_find_if(x, [&]<typename It>(It const&) -> bool {
-        if constexpr (specialization_of_template<typename It::type, C>) { return x.index() == It::index; } else { return false; }
+        if (x.index() == It::index) { return is<C>(std::get<It::index>(x));}
+        return false;
     }) != std::variant_npos || specialization_of_template<T, C>;
 }
 
