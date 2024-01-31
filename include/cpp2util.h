@@ -1401,14 +1401,15 @@ constexpr auto is() -> C<X> { return {}; }
 //
 
 template <typename X, auto C>
-auto is() -> std::false_type { return {}; }
+constexpr auto is() {
+    if constexpr (callable_with_explicit_type<CPP2_TYPEOF(C), X>) {
+        return std::true_type{};
+    } else {
+        return std::false_type{};
+    }
+}
 
-template <typename X, callable_with_explicit_type<X> auto C>
-auto is() -> std::true_type { return {}; }
-
-//  Templates
-//
-template <template <typename...> class C, specialization_of_template<C> X>
+template <template <typename, typename...> class C, specialization_of_template<C> X>
     requires (!specialization_of_template<X, std::variant>)
 constexpr auto is( X&& ) -> std::true_type {
     return {};
