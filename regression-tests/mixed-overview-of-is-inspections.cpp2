@@ -51,6 +51,13 @@ main: () = {
         print("<std::vector<int>&> is std::is_reference", cpp2::is<decltype(v),std::is_reference>(), true);
     }
 
+    print_header("type is concept");
+    {
+        // requires: clang-13+, gcc-12.1+, msvc-v19.34+
+        print("<int> is std::integral", cpp2::is<int,:<T:std::integral>()={}>(), true);
+        print("<double> is std::integral", cpp2::is<double,:<T:std::integral>()={}>(), false);
+    }
+
     print_header("variable is template");
     {
         v : std::vector = (1, 2, 3);
