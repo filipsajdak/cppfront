@@ -1496,7 +1496,7 @@ constexpr auto is( X const& x ) -> bool {
 }
 
 template< std::same_as<empty> C, typename X >
-    requires std::same_as<X, nullptr_t> || std::same_as<X, std::monostate>
+    requires std::same_as<X, std::nullptr_t> || std::same_as<X, std::monostate>
 constexpr auto is( X const& ) -> std::true_type {
     return {};
 }
