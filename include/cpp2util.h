@@ -479,6 +479,10 @@ concept can_bound_to = can_bound_to__impl__<X, C>
 template <typename X, typename C>
 concept cannot_bound_to = !can_bound_to<X,C> && !can_bound_to<pointee_t<X>, C>;
 
+// template <typename X, typename C>
+// concept equality_comparable_with = std::equality_comparable_with<X, C>;
+// std::equality_comparable_with<std::remove_cvref_t<X>, std::remove_cvref_t<C>>;
+
 //-----------------------------------------------------------------------
 //
 //  General helpers
@@ -1510,27 +1514,27 @@ constexpr auto is( X const& ) -> std::true_type {
 //  Values
 //
 template <typename X, typename V>
-constexpr auto is( X const&, V const& ) -> std::false_type {
+constexpr auto is( X const&, V && ) -> std::false_type {
     return {};
 }
 
 template <typename X, has_custom_operator_is<X> V>
-constexpr bool is( X const& x, V const& value ) {
+constexpr bool is( X const& x, V && value ) {
     return value.op_is(x);
 }
 
 template <not_pointer_like X, valid_predicate<X> V>
-constexpr bool is( X const& x, V const& value ) {
+constexpr bool is( X const& x, V && value ) {
     return value(x);
 }
 
 template <not_pointer_like X, std::equality_comparable_with<X> V>
-constexpr bool is( X const& x, V const& value ) {
+constexpr bool is( X const& x, V && value ) {
     return x == value;
 }
 
 template <typename X, callable_with_explicit_type<X> V>
-constexpr auto is( X const&, V const&) -> std::true_type {
+constexpr auto is( X const&, V &&) -> std::true_type {
     return {};
 }
 
@@ -1671,20 +1675,20 @@ constexpr auto is( std::any const& x ) -> bool
 //
 
 template <std::same_as<std::any> X, has_custom_operator_is<X> V>
-constexpr bool is( X const& x, V const& value ) {
+constexpr bool is( X const& x, V && value ) {
     return value.op_is(x);
 }
 
 template <std::same_as<std::any> X, has_defined_argument V>
     requires not_same_as<argument_of_t<V>, X>
-constexpr bool is( X const& x, V const& value ) {
+constexpr bool is( X const& x, V && value ) {
     auto* ptr = std::any_cast<argument_of_t<V>>(&x);
     return ptr && value(*ptr);
 }
 
 template <std::same_as<std::any> X, std::equality_comparable V>
     requires (!has_defined_argument<V>)
-constexpr bool is( X const& x, V const& value ) {
+constexpr bool is( X const& x, V && value ) {
     if constexpr (pointer_like<V>) {
         auto* ptr = std::any_cast<pointee_t<V>>(&x);
         return ptr && !is<empty>(value) && (*ptr == *value);
@@ -1722,14 +1726,14 @@ constexpr auto is( std::optional<U> const& x ) -> bool
 //
 
 template<typename... Ts, typename C>
-auto is( std::variant<Ts...> const& x, C const& value );
+auto is( std::variant<Ts...> const& x, C && value );
 
 //-------------------------------------------------------------------------------------------------------------
 //  pointer_like is
 //
 
 template <pointer_like X, typename V>
-constexpr auto is( X const& x, V const& value) -> decltype(auto) {
+constexpr auto is( X const& x, V && value) -> decltype(auto) {
     if constexpr (pointer<X> && pointer<V>) {
         return x == value;
     } else {
@@ -1762,9 +1766,9 @@ constexpr auto is( std::variant<Ts...> const& ) -> std::true_type {
 //
 
 template<typename... Ts, typename C>
-auto is( std::variant<Ts...> const& x, C const& value ) {
+auto is( std::variant<Ts...> const& x, C && value ) {
     return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if (x.index() ==  It::index) { return is(std::get<It::index>(x), value); }
+        if (x.index() ==  It::index) { return is(std::get<It::index>(x), std::forward<C>(value)); }
         return false;
     }) != std::variant_npos;
 }
