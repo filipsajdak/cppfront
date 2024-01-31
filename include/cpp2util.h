@@ -1447,7 +1447,7 @@ constexpr auto is( T const& ) -> std::false_type {
 //
 template <template <typename, typename...> class C, typename X>
     requires type_trait<C>
-auto is( X&& ) -> decltype(auto) {
+constexpr auto is( X&& ) -> decltype(auto) {
     if constexpr (
         C<X&&>::value
         || C<std::remove_reference_t<X>>::value
