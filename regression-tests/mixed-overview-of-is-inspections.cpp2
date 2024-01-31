@@ -30,6 +30,19 @@ main: () = {
         print("<C> is C", cpp2::is<C,C>(), true);
     }
 
+    print_header("type is template");
+    {
+        print("<std::vector<int>> is std::vector", cpp2::is<std::vector<int>,std::vector>(), true);
+        print("<std::vector<int>> is std::array", cpp2::is<std::vector<int>,std::array>(), false);
+        print("<std::vector<int>> is std::optional", cpp2::is<std::vector<int>,std::optional>(), false);
+        print("<std::array<int, 3>> is ", cpp2::is<std::array<int, 3>,std::vector>(), false);
+        print("<std::array<int, 3>> is ", cpp2::is<std::array<int, 3>,std::array>(), true);
+        print("<std::array<int, 3>> is ", cpp2::is<std::array<int, 3>,std::optional>(), false);
+        print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::vector>(), false);
+        print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::array>(), false);
+        print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::optional>(), true);
+    }
+
     print_header("variable is template");
     {
         v : std::vector = (1, 2, 3);
