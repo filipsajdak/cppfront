@@ -343,7 +343,7 @@ template <typename T>
 using argument_of_t = CPP2_TYPEOF(argument_of_helper(std::declval<T>()));
 
 template <typename T>
-using pointee_t = std::iter_value_t<T>;//std::remove_cvref_t<decltype(*std::declval<std::remove_cvref_t<T>>())>;
+using pointee_t = std::iter_value_t<T>;
 
 template <typename T>
 using value_type_of_t = typename std::remove_cvref_t<T>::value_type;
