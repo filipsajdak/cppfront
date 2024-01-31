@@ -249,6 +249,14 @@ main: () = {
             print("std::tuple{42, 3.14, \"string\"} as std::string", (t as std::string), "(42, 3.140000, string)");
             print("cpp2::to_string(std::tuple<int, A>())", cpp2::to_string(std::tuple<int, A>()), "(0, (customize me - no cpp2::to_string overload exists for this type))");
         }
+        {
+            o : std::optional<int> = ();
+            print("std::optional<int>{} as std::string", (o as std::string), "(empty)");
+
+            o = 42;
+            print("std::optional<int>{42} as std::string", (o as std::string), "42");
+        }
+
     }
 }
 
