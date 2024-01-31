@@ -1428,7 +1428,7 @@ constexpr auto is( C<T, Vs...> const& ) -> std::true_type {
 }
 
 // additional auto required not to collide with is type_trait
-template <template <typename,auto,auto...> class C, typename T>
+template <template <typename, auto, auto...> class C, typename T>
 constexpr auto is( T const& ) -> std::false_type {
     return {};
 }
