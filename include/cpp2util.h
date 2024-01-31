@@ -1417,20 +1417,12 @@ template <template <typename, typename...> class C, specialization_of_template<C
 constexpr auto is( X&& ) -> std::true_type {
     return {};
 }
+template <template <typename, typename...> class C, typename T>
+constexpr auto is( T&& ) -> std::false_type {
+    return {};
+}
 
-#if defined(_MSC_VER)
-    template <template <typename, typename...> class C, typename T>
-    constexpr auto is( T&& ) -> std::false_type {
-        return {};
-    }
-#else
-    template <template <typename...> class C, typename T>
-    constexpr auto is( T&& ) -> std::false_type {
-        return {};
-    }
-#endif
-
-template <template <typename,auto...> class C, typename T, auto... Vs>
+template <template <typename, auto...> class C, typename T, auto... Vs>
 constexpr auto is( C<T, Vs...> const& ) -> std::true_type {
     return {};
 }
