@@ -1376,17 +1376,17 @@ constexpr auto is() -> std::true_type { return {}; }
 //  Type is Template
 //
 
-template <typename X, template <typename...> class C>
+template <typename X, template <typename, typename...> class C>
 auto is() -> std::false_type { return {}; }
 
-template <typename X, template <typename...> class C>
+template <typename X, template <typename, typename...> class C>
     requires specialization_of_template<X, C>
 auto is() -> std::true_type { return {}; }
 
 template <typename X, template <typename,auto, auto...> class C>
 auto is() -> std::false_type { return {}; }
 
-template <typename X, template <typename,auto...> class C>
+template <typename X, template <typename, auto, auto...> class C>
     requires specialization_of_template_type_and_nttp<X, C>
 auto is() -> std::true_type { return {}; }
 
