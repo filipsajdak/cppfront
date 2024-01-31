@@ -1802,19 +1802,19 @@ constexpr auto is( C&& ) {
     }
 }
 
-template<template <typename...> class C, specialization_of_template<std::variant> T>
+template<typename C, specialization_of_template<std::variant> T>
 auto is( T&& x ) {
     return type_find_if(x, [&]<typename It>(It const&) -> bool {
         if (x.index() == It::index) { return is<C>(std::get<It::index>(x));}
         return false;
-    }) != std::variant_npos || specialization_of_template<T, C>;
+    }) != std::variant_npos;
 }
 
-template<std::same_as<empty> T, typename... Ts>
-auto is( std::variant<Ts...> const& x ) {
-    if (x.valueless_by_exception()) 
+template<std::same_as<empty> C, specialization_of_template<std::variant> T>
+auto is( T&& x ) {
+    if (x.valueless_by_exception())
         return true;
-    if constexpr (is_any<std::monostate, Ts...>) 
+    if constexpr (requires { {variant_contains_type<std::monostate>(std::declval<T>())} -> std::same_as<std::true_type>; }) 
         return std::get_if<std::monostate>(&x) != nullptr;
     return false;
 }
