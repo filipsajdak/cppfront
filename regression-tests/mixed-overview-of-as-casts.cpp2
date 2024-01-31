@@ -238,8 +238,6 @@ main: () = {
             print("ThrowingConstruction{} as std::string", (ThrowingConstruction() as std::string), "TC");
         }
         {
-            // A() as std::string;                      // error: static assertion failed due to requirement 'program_violates_type_safety_guarantee<std::string, A>': No cpp2::to_string overload exists for this type!
-            // std::variant<int, A>(42) as std::string; // error: static assertion failed due to requirement 'program_violates_type_safety_guarantee<std::string, std::variant<int, A>>': One of aggregate types has no cpp2::to_string overload - if you're sure you want this, use `cpp2::to_string() to force the conversion
             print("cpp2::to_string(std::variant<int, A>(42))", (cpp2::to_string(std::variant<int, A>(42))), "42");
         }
         {
@@ -250,7 +248,6 @@ main: () = {
             t : std::tuple<int, double, std::string> = (42, 3.14, "string");
             print("std::tuple{42, 3.14, \"string\"} as std::string", (t as std::string), "(42, 3.140000, string)");
             print("cpp2::to_string(std::tuple<int, A>())", cpp2::to_string(std::tuple<int, A>()), "(0, (customize me - no cpp2::to_string overload exists for this type))");
-            // std::tuple<int, A>() as std::string;
         }
     }
 }
