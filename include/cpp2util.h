@@ -1753,10 +1753,11 @@ constexpr auto is( X const& x, V && value) -> decltype(auto) {
 //  is Template
 //
 
-template <template <typename...> class C, typename... Ts>
-constexpr auto is( std::variant<Ts...> const& x ) -> bool {
-    return type_find_if<Ts...>([&]<typename It>(It const&) -> bool {
-        if (x.index() ==  It::index) { return is<C>(std::get<It::index>(x)); }
+template<template <typename...> class C, specialization_of_template<std::variant> T>
+    requires (!specialization_of_template<T, C>)
+constexpr auto is( T&& x ) {
+    return type_find_if(x, [&]<typename It>(It const&) -> bool {
+        if (x.index() == It::index) { return is<C>(forward_like<T>(std::get<It::index>(x)));}
         return false;
     }) != std::variant_npos;
 }
