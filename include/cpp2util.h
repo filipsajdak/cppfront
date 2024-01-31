@@ -1281,8 +1281,6 @@ template <typename... Ts>
 inline auto to_string(std::variant<Ts...> const& v) -> std::string
 {
     if (v.valueless_by_exception()) return "(empty)";
-    //  Need to guard this with is_any otherwise the get_if is illegal
-    if constexpr (is_any<std::monostate, Ts...>) if (std::get_if<std::monostate>(&v) != nullptr) return "(empty)";
 
     return std::visit([](auto&& arg) -> std::string {
         return cpp2::to_string(arg);
