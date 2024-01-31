@@ -353,8 +353,8 @@ constexpr auto specialization_of_template_helper(C< Ts...> const& ) -> std::true
     return {};
 }
 
-template <template <typename, auto> class C, typename T, auto N>
-constexpr auto specialization_of_template_helper(C< T, N > const& ) -> std::true_type {
+template <template <typename, auto...> class C, typename T, auto... Ns>
+constexpr auto specialization_of_template_helper(C< T, Ns... > const& ) -> std::true_type {
     return {};
 }
 
@@ -370,12 +370,12 @@ concept specialization_of_template = requires (X x) {
     { specialization_of_template_helper<C>(std::forward<X>(x)) } -> std::same_as<std::true_type>;
 };
 
-template <typename X, template<typename,auto> class C>
+template <typename X, template<typename,auto...> class C>
 concept specialization_of_template_type_and_nttp = requires (X x) {
     { specialization_of_template_helper<C>(std::forward<X>(x)) } -> std::same_as<std::true_type>;
 };
 
-template <template <typename> class C>
+template <template <typename...> class C>
 concept type_trait = std::derived_from<C<int>, std::true_type> || std::derived_from<C<int>, std::false_type>;
 
 template<typename X>
@@ -1381,10 +1381,10 @@ template <typename X, template <typename...> class C>
     requires specialization_of_template<X, C>
 auto is() -> std::true_type { return {}; }
 
-template <typename X, template <typename,auto> class C>
+template <typename X, template <typename,auto, auto...> class C>
 auto is() -> std::false_type { return {}; }
 
-template <typename X, template <typename,auto> class C>
+template <typename X, template <typename,auto...> class C>
     requires specialization_of_template_type_and_nttp<X, C>
 auto is() -> std::true_type { return {}; }
 
@@ -1424,12 +1424,13 @@ constexpr auto is( X&& ) -> std::true_type {
     }
 #endif
 
-template <template <typename,auto> class C, typename T, auto V>
-constexpr auto is( C<T, V> const& ) -> std::true_type {
+template <template <typename,auto...> class C, typename T, auto... Vs>
+constexpr auto is( C<T, Vs...> const& ) -> std::true_type {
     return {};
 }
 
-template <template <typename,auto> class C, typename T>
+// additional auto required not to collide with is type_trait
+template <template <typename,auto,auto...> class C, typename T>
 constexpr auto is( T const& ) -> std::false_type {
     return {};
 }
