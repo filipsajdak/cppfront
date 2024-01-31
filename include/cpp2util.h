@@ -554,6 +554,16 @@ constexpr auto type_find_if(C<Ts...>, F&& fun)
     return type_find_if<Ts...>(CPP2_FORWARD(fun));
 }
 
+template <typename T, typename... Ts>
+constexpr auto variant_contains_type(std::variant<Ts...>)
+{
+    if constexpr (is_any<T, Ts...>) {
+        return std::true_type{};
+    } else {
+        return std::false_type{};
+    }
+}
+
 //-----------------------------------------------------------------------
 //
 //  String: A helper workaround for passing a string literal as a
