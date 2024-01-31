@@ -1412,17 +1412,17 @@ constexpr auto is() {
 //  Variable is Template
 //
 
-template <template <typename, typename...> class C, specialization_of_template<C> X>
-    requires (!specialization_of_template<X, std::variant>)
+template <template <typename...> class C, specialization_of_template<C> X>
+    // requires (!specialization_of_template<X, std::variant>)
 constexpr auto is( X&& ) -> std::true_type {
     return {};
 }
-template <template <typename, typename...> class C, typename T>
+template <template <typename...> class C, typename T>
 constexpr auto is( T&& ) -> std::false_type {
     return {};
 }
 
-template <template <typename, auto...> class C, typename T, auto... Vs>
+template <template <typename, auto, auto...> class C, typename T, auto... Vs>
 constexpr auto is( C<T, Vs...> const& ) -> std::true_type {
     return {};
 }
@@ -1433,12 +1433,12 @@ constexpr auto is( T const& ) -> std::false_type {
     return {};
 }
 
-template <template <auto...> class C, auto... Vs>
+template <template <auto, auto...> class C, auto... Vs>
 constexpr auto is( C<Vs...> const& ) -> std::true_type {
     return {};
 }
 
-template <template <auto...> class C, typename T>
+template <template <auto, auto...> class C, typename T>
 constexpr auto is( T const& ) -> std::false_type {
     return {};
 }
