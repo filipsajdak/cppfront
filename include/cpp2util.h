@@ -1476,18 +1476,18 @@ constexpr auto is( X&& ) -> decltype(auto) {
 //  Variable is Type
 //
 template< typename C, typename X >
-constexpr auto is( X const& ) -> std::false_type {
+constexpr auto is( X && ) -> std::false_type {
     return {};
 }
 
 template< typename C, can_bound_to<C> X >
-constexpr auto is( X const& ) -> std::true_type {
+constexpr auto is( X && ) -> std::true_type {
     return {};
 }
 
 template< polymorphic C, polymorphic X >
     requires std::derived_from<X, C>
-constexpr auto is( X const& ) -> std::true_type { return {}; }
+constexpr auto is( X && ) -> std::true_type { return {}; }
 
 template< polymorphic C, polymorphic X >
 constexpr auto is( X&& x ) {
@@ -1500,7 +1500,7 @@ constexpr auto is( X&& x ) {
 
 template< polymorphic_pointer C, polymorphic_pointer X >
     requires std::derived_from<pointee_t<X>, pointee_t<C>>
-constexpr auto is( X const& ) -> std::true_type { return {}; }
+constexpr auto is( X && ) -> std::true_type { return {}; }
 
 template< polymorphic_pointer C, polymorphic_pointer X >
 constexpr auto is( X&& x ) {
@@ -1512,13 +1512,13 @@ constexpr auto is( X&& x ) {
 }
 
 template< std::same_as<empty> C, pointer_like X >
-constexpr auto is( X const& x ) -> bool {
-    return x == X();
+constexpr auto is( X && x ) -> bool {
+    return x == std::remove_cvref_t<X>();
 }
 
 template< std::same_as<empty> C, typename X >
-    requires std::same_as<X, std::nullptr_t> || std::same_as<X, std::monostate>
-constexpr auto is( X const& ) -> std::true_type {
+    requires same_type_as<X, std::nullptr_t> || same_type_as<X, std::monostate>
+constexpr auto is( X && ) -> std::true_type {
     return {};
 }
 
@@ -1692,11 +1692,11 @@ auto as( X&& x ) -> decltype(auto) {
 //  std::any variable is Type
 //
 template<typename T>
-constexpr auto is( std::any const& x ) -> bool
+constexpr auto is( same_type_as<std::any> auto && x ) -> bool
     { return x.type() == Typeid<T>(); }
 
 template<std::same_as<empty> T>
-constexpr auto is( std::any const& x ) -> bool
+constexpr auto is( same_type_as<std::any> auto && x ) -> bool
     { return !x.has_value(); }
 
 
@@ -1737,13 +1737,14 @@ auto as( X && x ) -> decltype(auto) {
 
 //  std::optional variable is Type
 //
-template<typename T, std::same_as<std::optional<T>> X>
-constexpr auto is( X const& x ) -> bool
-    { return x.has_value(); }
-
-template<std::same_as<empty> T, typename U>
-constexpr auto is( std::optional<U> const& x ) -> bool
-    { return !x.has_value(); }
+template<not_same_as<empty> T, specialization_of_template<std::optional> U>
+constexpr auto is( U&& x ) {
+    if constexpr (same_type_as<T, pointee_t<U>>) {
+        return std::true_type{};
+    } else {
+        return std::false_type{};
+    }
+}
 
 //-------------------------------------------------------------------------------------------------------------
 //  forward declarations needed for recursive calls
