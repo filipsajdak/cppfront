@@ -354,6 +354,7 @@ constexpr auto specialization_of_template_helper(C< Ts...> const& ) -> std::true
 }
 
 template <template <typename, auto...> class C, typename T, auto... Ns>
+    requires (sizeof...(Ns) > 0)
 constexpr auto specialization_of_template_helper(C< T, Ns... > const& ) -> std::true_type {
     return {};
 }
