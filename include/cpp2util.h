@@ -1383,7 +1383,7 @@ template <typename X, template <typename, typename...> class C>
     requires specialization_of_template<X, C>
 constexpr auto is() -> std::true_type { return {}; }
 
-template <typename X, template <typename,auto, auto...> class C>
+template <typename X, template <typename, auto, auto...> class C>
 constexpr auto is() -> std::false_type { return {}; }
 
 template <typename X, template <typename, auto, auto...> class C>
