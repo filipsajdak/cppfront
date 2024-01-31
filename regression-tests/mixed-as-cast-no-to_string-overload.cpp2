@@ -1,0 +1,5 @@
+main: () = {
+    A() as std::string;
+}
+
+A: type = {}
