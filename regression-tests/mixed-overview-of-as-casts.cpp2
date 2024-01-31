@@ -23,7 +23,7 @@ struct ThrowingConstruction {
 main: () = {
     print_header();
     { // nonesuch
-        i := 42;
+        // i := 42;
         print("(i as A) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
     }
     {// smaller to bigger, bigger to smaller
