@@ -1665,7 +1665,6 @@ constexpr auto is( std::any const& x ) -> bool
 //
 
 template <std::same_as<std::any> X, has_defined_argument V>
-    requires not_same_as<argument_of_t<V>, X>
 constexpr bool is( X const& x, V && value ) {
     auto* ptr = std::any_cast<argument_of_t<V>>(&x);
     return ptr && value(*ptr);
