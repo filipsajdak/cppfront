@@ -408,8 +408,11 @@ template <typename X>
 concept default_constructible = std::is_default_constructible_v<std::remove_cvref_t<X>>;
 
 template <typename X>
+concept bounded_array = std::is_bounded_array_v<std::remove_cvref_t<X>>;
+
+template <typename X>
 concept pointer_like = dereferencable<X> && default_constructible<X> && std::equality_comparable<X>
-                       && !std::is_bounded_array_v<std::remove_cvref_t<X>>;
+                       && !bounded_array<X>;
 
 template <typename X>
 concept not_pointer_like = !pointer_like<X>;
