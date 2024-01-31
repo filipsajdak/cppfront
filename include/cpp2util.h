@@ -1320,6 +1320,23 @@ inline auto to_string(auto&& value, std::string_view) -> std::string
 }
 #endif
 
+enum class casting_errors {
+    unknown, narrowing_cast, no_to_string_cast, no_to_string_cast_for_aggregate_types
+};
+
+//  For use when returning "no such thing", such as
+//  when customizing "as" for std::variant
+template <casting_errors error = casting_errors::unknown>
+struct nonesuch_ {
+    auto operator==(auto const&) -> bool { return false; }
+};
+constexpr inline nonesuch_<> nonesuch;
+
+template <typename X>
+concept nonesuch_specialization = requires (X x) {
+    { is<nonesuch_>(x) } -> std::same_as<std::true_type>;
+};
+
 //-----------------------------------------------------------------------
 //
 //  and "as std::string" for the same cases
@@ -1563,25 +1580,8 @@ inline constexpr auto is( X const& x, bool (*value)(X const&) ) -> bool {
 //  Built-in as
 //
 
-enum class casting_errors {
-    unknown, narrowing_cast, no_to_string_cast
-};
-
-//  For use when returning "no such thing", such as
-//  when customizing "as" for std::variant
-template <casting_errors error = casting_errors::unknown>
-struct nonesuch_ {
-    auto operator==(auto const&) -> bool { return false; }
-};
-constexpr inline nonesuch_<> nonesuch;
-
-template <typename X>
-concept nonesuch_specialization = requires (X x) {
-    { is<nonesuch_>(x) } -> std::same_as<std::true_type>;
-};
-
-template <std::same_as<std::string>, cannot_bound_to<std::string> X>
-    requires (!has_to_string_overload<X>) 
+template <std::same_as<std::string> C, not_same_as<std::string> X>
+    requires no_brace_initializable_to<X, C> && no_to_string_overload<X>
 auto as( X&& ) -> nonesuch_<casting_errors::no_to_string_cast> { return {}; }
 
 template< typename From, typename To > // https://eel.is/c++draft/dcl.init.list#7
