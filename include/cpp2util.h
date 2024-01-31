@@ -1255,7 +1255,7 @@ template <brace_initializable_to<std::string> T>
     requires not_one_of<T, bool, std::true_type, std::false_type>
 inline auto to_string(T const& s) -> std::string
 {
-    return std::string(s);
+    return std::string{s};
 }
 
 template <typename... Ts>
