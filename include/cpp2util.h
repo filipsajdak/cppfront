@@ -1445,7 +1445,7 @@ constexpr auto is( T const& ) -> std::false_type {
 
 // Variable is Type_traits
 //
-template <template <typename> class C, typename X>
+template <template <typename, typename...> class C, typename X>
     requires type_trait<C>
 auto is( X&& ) -> decltype(auto) {
     if constexpr (
