@@ -1,0 +1,8 @@
+In file included from mixed-typle-as-cast-aggregate-has-no-to_string-overload.cpp:6:
+../../../include/cpp2util.h:2172:9: error: static_assert failed due to requirement 'program_violates_type_safety_guarantee<std::string, std::tuple<int, A>>' "One of aggregate types has no cpp2::to_string overload - if you're sure you want this, use `cpp2::to_string() to force the conversion"
+        static_assert(
+        ^
+mixed-typle-as-cast-aggregate-has-no-to_string-overload.cpp2:2:11: note: in instantiation of function template specialization 'cpp2::as_<std::string, std::tuple<int, A>>' requested here
+    cpp2::as_<std::string>(std::tuple<int,A>());
+          ^
+1 error generated.

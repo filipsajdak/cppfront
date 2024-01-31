@@ -1,0 +1,5 @@
+main: () = {
+    std::tuple<int, A>() as std::string;
+}
+
+A: type = {}

@@ -1314,7 +1314,13 @@ inline auto to_string(std::tuple<Ts...> const& t) -> std::string
     } else {
         std::string out = "(" + cpp2::to_string(std::get<0>(t));
         std::apply([&out](auto&&, auto&&... args) {
-            ((out += ", " + cpp2::to_string(args)), ...);
+            ((out += ", " + []<typename T>(T const& arg) { 
+                                if constexpr (has_to_string_overload<T> || std::is_copy_constructible_v<T>) {
+                                    return cpp2::to_string(arg);
+                                } else {
+                                    return cpp2::to_string(std::ref(arg)); // cpp2::to_string(...) requires copy constructible type
+                                }
+                            }(args)), ...);
         }, t);
         out += ")";
         return out;
@@ -1373,8 +1379,7 @@ constexpr auto has_recursive_to_string_overload(C<Ts...> const&)
 template <std::same_as<std::string> C, has_to_string_overload X>
     requires not_one_of<X, std::string, std::any> && (same_type_as<X, bool> || no_brace_initializable_to<X, C>)
 auto as( X&& x ) {
-    if constexpr (specialization_of_template<X, std::variant> 
-        && requires {
+    if constexpr ( requires {
             { has_recursive_to_string_overload(x) } -> std::same_as<std::false_type>;
         }
     ) {

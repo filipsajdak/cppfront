@@ -246,6 +246,12 @@ main: () = {
             a : std::any = "string" as std::string;
             print("std::any{\"string\"} as std::string", (a as std::string), "string");
         }
+        {
+            t : std::tuple<int, double, std::string> = (42, 3.14, "string");
+            print("std::tuple{42, 3.14, \"string\"} as std::string", (t as std::string), "(42, 3.140000, string)");
+            print("cpp2::to_string(std::tuple<int, A>())", cpp2::to_string(std::tuple<int, A>()), "(0, (customize me - no cpp2::to_string overload exists for this type))");
+            // std::tuple<int, A>() as std::string;
+        }
     }
 }
 
