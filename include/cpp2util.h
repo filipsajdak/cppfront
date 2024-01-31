@@ -1460,7 +1460,7 @@ constexpr auto is( X&& ) -> decltype(auto) {
     }
 }
 
-//  Types
+//  Variable is Type
 //
 template< typename C, typename X >
 constexpr auto is( X const& ) -> std::false_type {
