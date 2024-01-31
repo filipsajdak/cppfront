@@ -375,6 +375,9 @@ concept specialization_of_template_type_and_nttp = requires (X x) {
     { specialization_of_template_helper<C>(std::forward<X>(x)) } -> std::same_as<std::true_type>;
 };
 
+template <template <typename> class C>
+concept type_trait = std::derived_from<C<int>, std::true_type> || std::derived_from<C<int>, std::false_type>;
+
 template<typename X>
 concept boolean_testable = std::convertible_to<X, bool> && requires(X&& x) {
   { !std::forward<X>(x) } -> std::convertible_to<bool>;
@@ -1389,8 +1392,7 @@ auto is() -> std::true_type { return {}; }
 //
 
 template <typename  X, template <typename> class C>
-    requires std::derived_from<C<X>, std::true_type>
-            || std::derived_from<C<X>, std::false_type>
+    requires type_trait<C>
 auto is() -> C<X> { return {}; }
 
 //  Type is Concept
@@ -1445,8 +1447,7 @@ constexpr auto is( T const& ) -> std::false_type {
 // Type traits
 //
 template <template <typename> class C, typename X>
-    requires std::derived_from<C<std::remove_cvref_t<X>>, std::true_type>
-            || std::derived_from<C<std::remove_cvref_t<X>>, std::false_type>
+    requires type_trait<C>
 auto is( X&& ) -> decltype(auto) {
     if constexpr (
         C<X&&>::value
