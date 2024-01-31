@@ -1282,8 +1282,12 @@ inline auto to_string(std::variant<Ts...> const& v) -> std::string
 {
     if (v.valueless_by_exception()) return "(empty)";
 
-    return std::visit([](auto&& arg) -> std::string {
-        return cpp2::to_string(arg);
+    return std::visit([]<typename T>(T const& arg) -> std::string {
+        if constexpr (has_to_string_overload<T> || std::is_copy_constructible_v<T>) {
+            return cpp2::to_string(arg);
+        } else {
+            return cpp2::to_string(std::ref(arg)); // cpp2::to_string(...) requires copy constructible type
+        }
     }, v);
 }
 
