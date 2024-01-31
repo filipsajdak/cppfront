@@ -1367,11 +1367,11 @@ using empty = void;
 //
 
 template <typename X, typename C>
-auto is() -> std::false_type { return {}; }
+constexpr auto is() -> std::false_type { return {}; }
 
 template <typename X, typename C>
     requires std::same_as<X, C> || std::derived_from<X,C>
-auto is() -> std::true_type { return {}; }
+constexpr auto is() -> std::true_type { return {}; }
 
 //  Type is Template
 //
