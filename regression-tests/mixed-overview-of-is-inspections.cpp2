@@ -71,12 +71,15 @@ main: () = {
         print("ptr_va1 is *VC", ptr_va1 is *VC, true);
         print("ptr_va0 is *VA<1>", ptr_va0 is *VA<1>, true);
         print("ptr_va1 is *VA<0>", ptr_va1 is *VA<0>, true);
-        print("cptr_va0 is *VC", cptr_va0 is *VC, true);
+        print("cptr_va0 is *VC", cptr_va0 is *VC, false);
+        print("cptr_va0 is * const VC", cptr_va0 is * const VC, true);
 
         print("ptr_va0* is VC", ptr_va0* is VC, true);
         print("ptr_va1* is VC", ptr_va1* is VC, true);
         print("ptr_va0* is VA<1>", ptr_va0* is VA<1>, true);
         print("ptr_va1* is VA<0>", ptr_va1* is VA<0>, true);
+        print("cptr_va0* is VC", cptr_va0* is VC, false);
+        print("cptr_va0* is const VC", cptr_va0* is const VC, true);
     }
 
     // pointer-like empty check
