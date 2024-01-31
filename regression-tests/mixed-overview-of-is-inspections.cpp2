@@ -43,6 +43,14 @@ main: () = {
         print("<std::optional<int>> is ", cpp2::is<std::optional<int>,std::optional>(), true);
     }
 
+    print_header("type is type_trait");
+    {
+        v : std::vector<int> = ();
+        print("<const std::vector<int>> is std::is_const", cpp2::is<const std::vector<int>,std::is_const>(), true);
+        print("<std::vector<int>> is std::is_const", cpp2::is<std::vector<int>,std::is_const>(), false);
+        print("<std::vector<int>&> is std::is_reference", cpp2::is<decltype(v),std::is_reference>(), true);
+    }
+
     print_header("variable is template");
     {
         v : std::vector = (1, 2, 3);
