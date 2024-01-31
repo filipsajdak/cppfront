@@ -1497,15 +1497,13 @@ constexpr auto is( X && ) -> std::false_type {
 }
 
 template< typename C, can_bound_to<C> X >
+    requires not_same_as<X, std::any>
 constexpr auto is( X && ) -> std::true_type {
     return {};
 }
 
 template< polymorphic C, polymorphic X >
-    requires std::derived_from<X, C>
-constexpr auto is( X && ) -> std::true_type { return {}; }
-
-template< polymorphic C, polymorphic X >
+    requires (!std::derived_from<std::remove_cvref_t<X>, C>)
 constexpr auto is( X&& x ) {
     if constexpr ( const_type<std::remove_reference_t<X>> && !const_type<C>) {
         return std::false_type{};
@@ -1515,10 +1513,7 @@ constexpr auto is( X&& x ) {
 }
 
 template< polymorphic_pointer C, polymorphic_pointer X >
-    requires std::derived_from<pointee_t<X>, pointee_t<C>>
-constexpr auto is( X && ) -> std::true_type { return {}; }
-
-template< polymorphic_pointer C, polymorphic_pointer X >
+    requires cannot_bound_to<X, C>
 constexpr auto is( X&& x ) {
     if constexpr ( const_type<std::remove_pointer_t<std::remove_reference_t<X>>> && !const_type<std::remove_pointer_t<C>>) {
         return std::false_type{};
@@ -1602,7 +1597,7 @@ template <std::same_as<std::string> C, not_same_as<std::string> X>
 auto as( X&& ) -> nonesuch_<casting_errors::no_to_string_cast> { return {}; }
 
 template< typename From, typename To > // https://eel.is/c++draft/dcl.init.list#7
-concept narrowing_to = arithmetic<From> && arithmetic<To> && !brace_initializable_to<From, To>;
+concept narrowing_to = arithmetic<From> && arithmetic<To> && no_brace_initializable_to<From, To>;
 
 template <typename... Ts>
 inline constexpr auto program_violates_type_safety_guarantee = sizeof...(Ts) < 0;
@@ -1616,13 +1611,13 @@ concept castable = requires{ C{x}; };
 template <typename C,        typename X > auto as( X&& ) -> nonesuch_<> { return {}; }
 template< typename C, narrowing_to<C> X > auto as( X&& ) -> nonesuch_<casting_errors::narrowing_cast> { return {}; }
 
-template< not_same_as<std::string> C, brace_initializable_to<C> X >
-    requires not_same_as<X, C>
+template< typename C, brace_initializable_to<C> X >
+    requires not_one_of<X, C, bool>
 auto as( X&& x ) -> decltype(auto) {
     return C{std::forward<X>(x)};
 }
 
-template< typename C, pointer_like X >
+template< not_same_as<std::string> C, pointer_like X >
     requires brace_initializable_to<pointee_t<X>, C> && not_one_of<pointee_t<X>, C>
 auto as( X&& x ) -> decltype(auto) {
     if (x) {
@@ -1737,6 +1732,7 @@ auto as( X && x ) -> decltype(auto) {
 //  std::optional variable is Type
 //
 template<not_same_as<empty> T, specialization_of_template<std::optional> U>
+    requires not_same_as<T, U>
 constexpr auto is( U&& x ) {
     if constexpr (same_type_as<T, pointee_t<U>>) {
         return std::true_type{};
@@ -1848,7 +1844,7 @@ auto as( X && x ) -> decltype(auto) {
     return forward_like<X>(*ptr);
 }
 
-template< typename C, pointer_like X >
+template< not_same_as<std::string> C, pointer_like X >
     requires can_bound_to<pointee_t<X>, C>
 auto as( X&& x ) -> decltype(auto) {
     if (x) {
