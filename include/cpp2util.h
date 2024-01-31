@@ -1495,9 +1495,9 @@ template< polymorphic_pointer C, polymorphic_pointer X >
     requires std::derived_from<pointee_t<X>, pointee_t<C>>
 constexpr auto is( X const& ) -> std::true_type { return {}; }
 
-template< polymorphic C, polymorphic_pointer X >
-constexpr auto is( X const x ) -> bool {
-    return Dynamic_cast<C const*>(x) != nullptr;
+template< polymorphic_pointer C, polymorphic_pointer X >
+constexpr auto is( X const& x ) -> bool {
+    return Dynamic_cast<C>(x) != nullptr;
 }
 
 template< std::same_as<empty> C, pointer_like X >
@@ -1635,24 +1635,24 @@ auto as( X&& x ) -> decltype(auto) {
 template< polymorphic C, polymorphic X >
     requires reference<X> && (!std::derived_from<std::remove_cvref_t<X>, C>)
 auto as( X&& x ) -> decltype(auto) {
-    return dynamic_cast<forward_like_t<C,X&&>>(std::forward<X>(x));
+    return Dynamic_cast<forward_like_t<C,X&&>>(std::forward<X>(x));
 }
 
 template< polymorphic C, polymorphic_pointer X >
 auto as( X&& x ) -> forward_like_t<C,X&&> {
-    return dynamic_cast<forward_like_t<C,X&&>>(*x);
+    return Dynamic_cast<forward_like_t<C,X&&>>(*x);
 }
 
 template< polymorphic_pointer C, polymorphic_pointer X >
     requires (!can_bound_to<X, C>)
 auto as( X&& x ) -> decltype(auto) {
-    return dynamic_cast<forward_like_t<pointee_t<C>,std::remove_pointer_t<std::remove_cvref_t<X>>>*>(x);
+    return Dynamic_cast<forward_like_t<pointee_t<C>,std::remove_pointer_t<std::remove_cvref_t<X>>>*>(x);
 }
 
 template< polymorphic_pointer C, polymorphic X >
     requires not_same_as<pointee_t<C>, X>
 auto as( X&& x ) -> decltype(auto) {
-    return dynamic_cast<std::remove_reference_t<forward_like_t<std::remove_pointer_t<C>,X>>*>(&x);
+    return Dynamic_cast<std::remove_reference_t<forward_like_t<std::remove_pointer_t<C>,X>>*>(&x);
 }
 
 
