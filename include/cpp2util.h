@@ -1242,37 +1242,11 @@ auto to_string( X const x ) -> std::string {
     return std::to_string(x); 
 }
 
-inline auto to_string(char const t) -> std::string
+template <brace_initializable_to<std::string> T>
+    requires not_one_of<T, bool, std::true_type, std::false_type>
+inline auto to_string(T const& s) -> std::string
 {
-    return std::string{t};
-}
-
-template <std::same_as<char const*> X>
-inline auto to_string(X const& s) -> std::string
-{
-    return std::string{s};
-}
-
-template <std::same_as<char*> X>
-inline auto to_string(X const& s) -> std::string
-{
-    return std::string{s};
-}
-
-inline auto to_string(std::same_as<std::string_view> auto const& s) -> std::string
-{
-    return std::string{s};
-}
-
-inline auto to_string(std::same_as<std::string> auto const& s) -> std::string
-{
-    return s;
-}
-
-template<std::size_t N>
-inline auto to_string(const char (&x)[N]) -> std::string
-{
-    return std::string{x};
+    return std::string(s);
 }
 
 template <typename... Ts>
