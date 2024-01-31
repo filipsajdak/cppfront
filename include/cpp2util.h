@@ -480,10 +480,6 @@ concept can_bound_to = can_bound_to__impl__<X, C>
 template <typename X, typename C>
 concept cannot_bound_to = !can_bound_to<X,C> && !can_bound_to<pointee_t<X>, C>;
 
-// template <typename X, typename C>
-// concept equality_comparable_with = std::equality_comparable_with<X, C>;
-// std::equality_comparable_with<std::remove_cvref_t<X>, std::remove_cvref_t<C>>;
-
 //-----------------------------------------------------------------------
 //
 //  General helpers
