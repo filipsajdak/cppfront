@@ -1,0 +1,207 @@
+int* raw_null = nullptr;
+
+template<int I> struct X { operator int() const { return I; } };
+
+close_to: (v) -> _ = :(x) -> bool = {
+    return std::abs(v$ - x) <= std::max<std::common_type_t<std::decay_t<decltype(x)>,std::decay_t<decltype(v$)>>>(std::numeric_limits<std::decay_t<decltype(x)>>::epsilon(), std::numeric_limits<std::decay_t<decltype(v$)>>::epsilon());
+};
+
+auto expect_throws(auto l) -> std::string {
+    try {
+        l();
+    } catch (...) {
+        return "throws";
+    }
+    return "nothrow";
+}
+
+struct ThrowingConstruction {
+    constexpr ThrowingConstruction() = default;
+    ThrowingConstruction(int) { throw 1; }
+};
+
+main: () = {
+    print_header();
+    { // nonesuch
+        i := 42;
+        print("(i as A) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
+    }
+    {// smaller to bigger, bigger to smaller
+        print("(u8(12) as u16) is (u16(12))", (u8(12) as u16) is (u16(12)), true);
+        print("(u16(12) as u8) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
+        print("(3.14f as double) is close_to(3.14f)", (3.14f as double) is (close_to(3.14f)), true, std::abs(3.14 - (3.14f as double)));
+        print("(3.14d as float) is close_to(3.14f)", "N/A", "N/A", "static assert - tested in separate tests");
+    }
+    {// signed/unsigned
+        print("( u8(12) as i16) is (i16(12))", ( u8(12) as i16) is (i16(12)), true);
+        print("(i16(12) as  u8) is ( u8(12))", "N/A", "N/A", "static assert - tested in separate tests");
+        print("( 12 as u8) is (u8(12))", (12 as u8) is (u8(12)), true);
+        print("( 12u as i8) is (i8(12))", (12u as i8) is (i8(12)), true);
+    }
+    {// integral to floating, floating to integral
+        print("( 12 as double) is (12.0)", (12 as double) is (12.0), true);
+        print("( 12.0 as int) is (12)", "N/A", "N/A", "static assert - tested in separate tests");
+    }
+    {// custom types casting
+        print("(X<12>() as int) is (int(X<12>()))", (X<12>() as int) is (int(X<12>())), true);
+    }
+    {
+        print("(3.14 as std::optional<int>) is (nonesuch)", "N/A", "N/A", "static assert - tested in separate tests");
+        print("(3 as std::optional<double>) is (std::optional<double>(3))", (3 as std::optional<double>) is (std::optional<double>(3)), true);
+    }
+    {// base_of
+        print("( A() as A ) is A", ( A() as A ) is A, true);
+        print("( C() as A ) is A", ( C() as A ) is A, true);
+        print("( B() as A ) is nonesuch_", "N/A", "N/A", "static assert - tested in separate tests");
+    }
+    {// Polymorphic types
+        vc: VC = ();
+        vp0 : *VA<0> = vc&;
+        vp1 : *VA<1> = vc&;
+        cvp0 : * const VA<0> = vc&;
+
+        print("( vp0 as *VC ) is (vc&)", ( vp0 as *VC ) is (vc&), true);
+        print("( vp1 as *VC ) is (vc&)", ( vp1 as *VC ) is (vc&), true);
+        print("( vp0 as *VA<1> ) is (vp1)", ( vp0 as *VA<1> ) is (vp1), true);
+        print("( cvp0 as *VC ) is (std::as_const(vc)&)", ( cvp0 as *VC ) is (std::as_const(vc)&), true );
+        print("( cvp0 as * const VC ) is (std::as_const(vc)&)", ( cvp0 as * const VC ) is (std::as_const(vc)&), true );
+
+        print("( vp0* as VC )& is (vc&)", ( vp0* as VC )& is (vc&), true);
+        print("( vp1* as VC )& is (vc&)", ( vp1* as VC )& is (vc&), true);
+        print("( vp0* as VA<1> )& is (vp1)", ( vp0* as VA<1> )& is (vp1), true);
+
+        vd: VD = ();
+        vp2 : *VA<2> = vd&;
+        print("( vp2* as VC )", expect_throws(:() = ( vp2$* as VC );), "throws");
+
+    }
+    {// Variant
+        v : std::variant<int, long, float, double, std::string> = 42;
+
+        print("( v{42} as int ) is (42)", ( v as int ) is (42), true);
+        print("( v{42} as float )", expect_throws(:() = ( v$ as float );), "throws");
+
+        v = "string";
+        print("( v{\"string\"} as std::string )", ( v as std::string ) is (std::string("string")), true);
+        print("( v{\"string\"} as int )", expect_throws(:() = ( v$ as int );), "throws");
+    }
+    {// Variant and empty
+        myvariant: type == std::variant<ThrowingConstruction, std::monostate, int>;
+
+        v : myvariant = ();
+        expect_throws(:() = v&$*.emplace<0>(42););
+        // expect_throws(:() = std::ref(v&$*).emplace<0>(42);); // TODO: check why it is not working?
+
+        print("( v{after throw} as ThrowingConstruction )", expect_throws(:() = ( v$ as ThrowingConstruction );), "throws");
+
+        v.emplace<2>(12);
+        print("( v{12} as int ) is (12)", ( v as int ) is (12), true);
+
+        v.emplace<1>();
+        // l-value variant
+        print("( v{monostate} as int )", expect_throws(:() = ( v&$* as int );), "throws");
+        print("( v{monostate} as std::monostate ) is std::monostate", ( v as std::monostate ) is std::monostate, true);
+        print("( v{monostate} as std::monostate ) is cpp2::empty", ( v as std::monostate ) is cpp2::empty, true, "what is expected behaviour?");
+
+        // r-value variant
+        print("( myvariant(std::monostate()) as int )", expect_throws(:() = ( myvariant(std::monostate()) as int );), "throws");
+        print("( myvariant(std::monostate()) as std::monostate ) is std::monostate", ( myvariant(std::monostate()) as std::monostate ) is std::monostate, true);
+        print("( myvariant(std::monostate()) as std::monostate ) is cpp2::empty", ( myvariant(std::monostate()) as std::monostate ) is cpp2::empty, true, "what is expected behaviour?");
+
+        // const variant
+        print("( as_const(v){monostate} as int )", expect_throws(:() = ( std::as_const(v&$*) as int );), "throws");
+        print("( as_const(v){monostate} as std::monostate ) is std::monostate", ( std::as_const(v) as std::monostate ) is std::monostate, true);
+        print("( as_const(v){monostate} as std::monostate ) is cpp2::empty", ( std::as_const(v) as std::monostate ) is cpp2::empty, true, "what is expected behaviour?");
+
+        v = 42;
+    }
+
+    {// any
+        a : std::any = 12;
+        print("( a{12} as int ) is (12)", ( a as int ) is (12), true);
+        print("( a{12} as std::string )", expect_throws(:() = a$ as std::string;), "throws");
+    }
+
+    {// optional
+        o : std::optional = 42;
+        print("( o{42} as int ) is (42)", ( o as int ) is (42), true);
+        print("( o{42} as long ) is (42l)", ( o as long ) is (42l), true);
+        print("( o{42} as std::tuple<long> ) is (std::tuple<long>(42))", ( o as std::tuple<long> ) is (std::tuple<long>(42)), true);
+    }
+
+    {// string
+        print("( \"xyzzy\" as std::string ) is std::string", ( "xyzzy" as std::string ) is std::string, true, "xyzzy" as std::string);        
+        print("( std::string(\"xyzzy\") as std::string ) is std::string", ( std::string("xyzzy") as std::string ) is std::string, true, std::string("xyzzy") as std::string);        
+        s : std::string = "string";
+
+        print("( as_const(s){string} as std::string ) is std::string", ( std::as_const(s) as std::string ) is std::string, true);        
+        print("( s{string} as std::string ) is std::string", ( s as std::string ) is std::string, true);        
+    }
+}
+
+A: type = {}
+B: type = {}
+C: type = {
+    this: A = ();
+}
+
+VA: @polymorphic_base <I:int> type = {}
+
+VC: type = {
+    this: VA<0>;
+    this: VA<1>;
+}
+
+VD : type = {
+    this: VA<2>;
+}
+
+pred_i: (x : int ) -> bool = {
+    return x > 0;
+}
+
+pred_d: (x : double ) -> bool = {
+    return x > 0;
+}
+
+pred_: (x) -> bool = {
+    return x > 0;
+}
+
+col : std::array<int, 5> = (70, 8, 8, 8, 40);
+
+print: (what, value, expected, comment) = {
+    l := :(value) -> std::string = { 
+        return inspect value -> std::string {
+            is (true ) = "true" ;
+            is (false) = "false";
+            is _ = cpp2::to_string(value);
+        };
+    };
+    print(what, l(value), l(expected), inspect (value == expected) -> std::string { is (true) = "OK"; is _ = "FAILED!";}, comment );
+}
+
+print: (what, value, expected) = {
+    print(what, value, expected, std::string());
+}
+
+print: (what, value, expected, result, comment) = {
+    std::cout << "|" << std::setw(col[0]) << std::right << what;
+    std::cout << "|" << std::setw(col[1]) << std::internal << value;
+    std::cout << "|" << std::setw(col[2]) << std::internal << expected;
+    std::cout << "|" << std::setw(col[3]) << std::internal <<  result;
+    std::cout << "|" << std::setw(col[4]) << std::left << std::setprecision(20) << comment;
+    std::cout << "|" << std::endl;
+}
+
+print_header: () = {
+    print("Test", "Actual", "Expected", "Result", "Comment");
+    print(     std::string(col[0]-1,'-')+":"
+         , ":"+std::string(col[1]-2,'-')+":"
+         , ":"+std::string(col[2]-2,'-')+":"
+         , ":"+std::string(col[3]-2,'-')+":"
+         , ":"+std::string(col[4]-1,'-')
+    );
+}
+
+#include <iomanip>
