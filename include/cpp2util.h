@@ -442,6 +442,9 @@ template <typename X, typename... Ts>
 concept not_one_of = (not_same_as<X,Ts> && ...) ;
 
 template <typename X>
+concept const_type = std::is_const_v<X> || std::is_const_v<std::remove_reference_t<X>>;
+
+template <typename X>
 concept has_defined_argument = requires { 
 	std::declval<argument_of_t<X>>(); 
 };
