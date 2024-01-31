@@ -1481,10 +1481,6 @@ constexpr auto is( X const& x ) -> bool {
     return Dynamic_cast<C const*>(&x) != nullptr;
 }
 
-template< polymorphic C, polymorphic_pointer X >
-    requires std::derived_from<pointee_t<X>, C>
-constexpr auto is( X const& ) -> std::true_type { return {}; }
-
 template< polymorphic_pointer C, polymorphic_pointer X >
     requires std::derived_from<pointee_t<X>, pointee_t<C>>
 constexpr auto is( X const& ) -> std::true_type { return {}; }
