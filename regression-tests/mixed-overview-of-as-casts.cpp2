@@ -234,6 +234,13 @@ main: () = {
             p.second = std::monostate();
             print("pair{42, variant{std::monostate}} as std::string", (p as std::string), "(42, (empty))");
         }
+
+        {
+            // p : std::pair<int, A> = ();
+            // print("pair<int,A>{} as std::string", (p as std::string), "(0, (customize me - no cpp2::to_string overload exists for this type))");
+            print("cpp2::to_string(pair<int,A>{})", cpp2::to_string(std::pair<int,A>()), "(0, (customize me - no cpp2::to_string overload exists for this type))");
+        }
+
         {
             print("ThrowingConstruction{} as std::string", (ThrowingConstruction() as std::string), "TC");
         }
@@ -256,7 +263,11 @@ main: () = {
             o = 42;
             print("std::optional<int>{42} as std::string", (o as std::string), "42");
         }
-
+        {
+            o : std::optional<A> = (std::in_place_t());
+            // o as std::string;
+            cpp2::to_string(o);
+        }
     }
 }
 
