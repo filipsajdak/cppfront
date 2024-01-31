@@ -1732,13 +1732,15 @@ auto as( X && x ) -> decltype(auto) {
 //  std::optional variable is Type
 //
 template<not_same_as<empty> T, specialization_of_template<std::optional> U>
+    requires not_same_as<T, U> && not_same_as<T, pointee_t<U>>
+constexpr auto is( U&& x ) -> std::false_type {
+    return {};
+}
+
+template<not_same_as<empty> T, specialization_of_template<std::optional> U>
     requires not_same_as<T, U>
 constexpr auto is( U&& x ) {
-    if constexpr (same_type_as<T, pointee_t<U>>) {
-        return std::true_type{};
-    } else {
-        return std::false_type{};
-    }
+    return x.has_value();
 }
 
 //-------------------------------------------------------------------------------------------------------------
