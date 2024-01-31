@@ -397,7 +397,8 @@ concept polymorphic_pointer = pointer<X>
                         && polymorphic<std::remove_pointer_t<std::remove_cvref_t<X>>>;
 
 template <typename X>
-concept non_polymorphic_pointer = !polymorphic_pointer<X>;
+concept non_polymorphic_pointer = pointer<X> 
+                        && !polymorphic<std::remove_pointer_t<std::remove_cvref_t<X>>>;
 
 template <typename X>
 concept dereferencable = requires (X x) { *x; };
