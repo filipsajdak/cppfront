@@ -1501,7 +1501,7 @@ constexpr auto is( X const& ) -> std::true_type {
     return {};
 }
 
-//  Values
+//  Variable is Value
 //
 template <typename X, typename V>
 constexpr auto is( X const&, V && ) -> std::false_type {
