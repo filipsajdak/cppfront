@@ -1443,7 +1443,7 @@ constexpr auto is( T const& ) -> std::false_type {
     return {};
 }
 
-// Type traits
+// Variable is Type_traits
 //
 template <template <typename> class C, typename X>
     requires type_trait<C>
