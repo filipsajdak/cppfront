@@ -1634,12 +1634,6 @@ auto as( X&& x ) -> decltype(auto) {
 }
 
 template< polymorphic C, polymorphic_pointer X >
-    requires std::same_as<C, pointee_t<X>>
-auto as( X&& x ) -> decltype(auto) {
-    return static_cast<forward_like_t<C,X&&>>(*x);
-}
-
-template< polymorphic C, polymorphic_pointer X >
 auto as( X&& x ) -> forward_like_t<C,X&&> {
     return dynamic_cast<forward_like_t<C,X&&>>(*x);
 }
